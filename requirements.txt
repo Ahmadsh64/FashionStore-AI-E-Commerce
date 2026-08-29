@@ -1,0 +1,82 @@
+# =============================================================
+# FashionStore — רשימת כל הספריות של הפרויקט
+# =============================================================
+# בפרויקטי Node.js לא משתמשים ב-requirements.txt (כמו ב-Python),
+# אלא ב-package.json + npm install. הקובץ הזה הוא סיכום קריא
+# של כל התלויות + הפקודות להתקנה ידנית.
+#
+# 🚀 התקנה מהירה (מומלץ):
+#     cd fashion-store
+#     npm install
+#
+# הפקודה npm install קוראת את package.json ומתקינה הכל אוטומטית.
+# הקבצים install.ps1 / install.sh בתיקייה זו עושים את זה עבורך.
+# =============================================================
+
+
+# =============================================================
+# DEPENDENCIES  (ספריות שנטענות בזמן ריצה)
+# =============================================================
+
+next==^15.1.6                    # React framework (App Router)
+react==^19.0.0                   # React
+react-dom==^19.0.0               # React DOM
+
+@supabase/supabase-js==^2.45.4   # Supabase JS client
+@supabase/ssr==^0.5.2            # Supabase + Next.js App Router (SSR cookies)
+
+zustand==^5.0.1                  # State management (cart)
+zod==^3.23.8                     # Schema validation
+sonner==^1.7.0                   # Toast notifications
+lucide-react==^0.454.0           # Icon library
+
+# Tailwind UI helpers (Shadcn-style)
+class-variance-authority==^0.7.1 # variants for components
+clsx==^2.1.1                     # className concat
+tailwind-merge==^2.5.4           # tailwind class merging
+
+
+# =============================================================
+# DEV DEPENDENCIES  (רק לפיתוח / build)
+# =============================================================
+
+typescript==^5.6.3
+@types/node==^22.9.0
+@types/react==^19.0.0
+@types/react-dom==^19.0.0
+
+tailwindcss==^3.4.14
+postcss==^8.4.49
+autoprefixer==^10.4.20
+
+eslint==^9.14.0
+eslint-config-next==^15.1.6
+
+
+# =============================================================
+# פקודות התקנה ידניות (אם רוצים להתקין חבילה אחת בכל פעם)
+# =============================================================
+#
+# ליבה:
+#   npm install next@^15.1.6 react@^19.0.0 react-dom@^19.0.0
+#
+# Supabase:
+#   npm install @supabase/supabase-js @supabase/ssr
+#
+# UI + State + Validation:
+#   npm install zustand zod sonner lucide-react
+#   npm install class-variance-authority clsx tailwind-merge
+#
+# Dev:
+#   npm install -D typescript @types/node @types/react @types/react-dom
+#   npm install -D tailwindcss postcss autoprefixer
+#   npm install -D eslint eslint-config-next
+#
+# =============================================================
+# משתני סביבה נדרשים (יצור .env.local לפי .env.local.example)
+# =============================================================
+#   NEXT_PUBLIC_SUPABASE_URL         — חובה
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY    — חובה
+#   SUPABASE_SERVICE_ROLE_KEY        — מומלץ (הזמנות של אורחים)
+#   OPENAI_API_KEY                   — אופציונלי (AI Assistant)
+# =============================================================
