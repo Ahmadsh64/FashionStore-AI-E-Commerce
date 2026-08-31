@@ -11,14 +11,53 @@ export const productSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
+export const PAYMENT_METHODS = [
+  "credit_card",
+  "bit",
+  "paypal",
+  "paybox",
+  "cash_on_delivery",
+  "bank_transfer",
+] as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  credit_card: "כרטיס אשראי",
+  bit: "Bit",
+  paypal: "PayPal",
+  paybox: "PayBox",
+  cash_on_delivery: "מזומן במסירה",
+  bank_transfer: "העברה בנקאית",
+};
+
 export const checkoutSchema = z.object({
   full_name: z.string().min(2, "שם מלא נדרש"),
   email: z.string().email("אימייל לא תקין"),
   phone: z.string().min(9, "טלפון לא תקין"),
   address: z.string().min(5, "כתובת נדרשת"),
+  payment_method: z.enum(PAYMENT_METHODS, {
+    message: "יש לבחור אמצעי תשלום",
+  }),
 });
 
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+export const creditCardSchema = z.object({
+  card_holder: z.string().min(2, "יש להזין שם בעל הכרטיס"),
+  card_number: z
+    .string()
+    .transform((v) => v.replace(/\s/g, ""))
+    .pipe(
+      z
+        .string()
+        .regex(/^\d{13,19}$/, "מספר כרטיס לא תקין"),
+    ),
+  expiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "תוקף בפורמט MM/YY"),
+  cvv: z.string().regex(/^\d{3,4}$/, "CVV חייב 3-4 ספרות"),
+});
+
+export type CreditCardFormValues = z.infer<typeof creditCardSchema>;
 
 export const authSchema = z.object({
   email: z.string().email("אימייל לא תקין"),

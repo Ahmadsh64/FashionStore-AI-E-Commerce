@@ -21,17 +21,35 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name } },
       });
       if (error) throw error;
-      toast.success("נרשמת בהצלחה! בדוק את האימייל לאישור.");
-      router.push("/login");
+
+      if (data.session) {
+        toast.success("נרשמת בהצלחה!");
+        router.push("/");
+        router.refresh();
+      } else {
+        toast.success(
+          "נרשמת בהצלחה! שלחנו לך מייל אישור - לחץ על הלינק שם ואז התחבר.",
+          { duration: 8000 },
+        );
+        router.push("/login");
+      }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "שגיאה ברישום";
-      toast.error(msg);
+      const raw = err instanceof Error ? err.message : "";
+      let friendly = "שגיאה ברישום";
+      if (/user already registered/i.test(raw)) {
+        friendly = "המייל הזה כבר רשום. לך לדף הכניסה.";
+      } else if (/password/i.test(raw) && /short/i.test(raw)) {
+        friendly = "הסיסמה קצרה מדי - לפחות 6 תווים.";
+      } else if (raw) {
+        friendly = raw;
+      }
+      toast.error(friendly);
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { formatDate, formatPrice } from "@/lib/utils";
 import type { Order } from "@/types/order";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusSelect } from "./OrderStatusSelect";
+import { PAYMENT_METHOD_LABELS } from "@/lib/validators";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "warning" | "success" | "destructive"> = {
   pending: "warning",
@@ -68,8 +69,17 @@ export default async function AdminOrdersPage() {
               </div>
             )}
 
-            <div className="mt-3 border-t pt-3 text-xs text-muted-foreground">
-              כתובת: {o.address}
+            <div className="mt-3 grid gap-1 border-t pt-3 text-xs text-muted-foreground">
+              <div>
+                <span className="font-semibold text-foreground">כתובת:</span>{" "}
+                {o.address}
+              </div>
+              {o.payment_method && (
+                <div>
+                  <span className="font-semibold text-foreground">אמצעי תשלום:</span>{" "}
+                  {PAYMENT_METHOD_LABELS[o.payment_method] ?? o.payment_method}
+                </div>
+              )}
             </div>
           </div>
         ))}

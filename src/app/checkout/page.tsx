@@ -3,13 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/utils";
-import { checkoutSchema } from "@/lib/validators";
+import {
+  checkoutSchema,
+  creditCardSchema,
+  PAYMENT_METHOD_LABELS,
+  type PaymentMethod,
+} from "@/lib/validators";
+import { PaymentMethods, type CreditCardData } from "@/components/PaymentMethods";
+
+const COD_FEE = 15;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -24,6 +33,13 @@ export default function CheckoutPage() {
     phone: "",
     address: "",
   });
+  const [payment, setPayment] = useState<PaymentMethod>("credit_card");
+  const [card, setCard] = useState<CreditCardData>({
+    card_holder: "",
+    card_number: "",
+    expiry: "",
+    cvv: "",
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -34,14 +50,24 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   const shipping = total >= 300 ? 0 : 30;
-  const grand = total + shipping;
+  const codFee = payment === "cash_on_delivery" ? COD_FEE : 0;
+  const grand = total + shipping + codFee;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = checkoutSchema.safeParse(form);
+
+    const parsed = checkoutSchema.safeParse({ ...form, payment_method: payment });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
+    }
+
+    if (payment === "credit_card") {
+      const cardParsed = creditCardSchema.safeParse(card);
+      if (!cardParsed.success) {
+        toast.error(cardParsed.error.issues[0].message);
+        return;
+      }
     }
 
     setLoading(true);
@@ -88,6 +114,7 @@ export default function CheckoutPage() {
                   id="full_name"
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  autoComplete="name"
                   required
                 />
               </div>
@@ -98,6 +125,7 @@ export default function CheckoutPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -105,8 +133,10 @@ export default function CheckoutPage() {
                 <Label htmlFor="phone">טלפון</Label>
                 <Input
                   id="phone"
+                  type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  autoComplete="tel"
                   required
                 />
               </div>
@@ -116,6 +146,7 @@ export default function CheckoutPage() {
                   id="address"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  autoComplete="street-address"
                   required
                 />
               </div>
@@ -123,17 +154,23 @@ export default function CheckoutPage() {
           </div>
 
           <div className="rounded-lg border bg-card p-6">
-            <h2 className="mb-4 text-lg font-semibold">אמצעי תשלום</h2>
-            <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">מזומן במסירה (Cash on Delivery)</p>
-              <p className="mt-1">
-                שילוב Stripe/סליקה יתווסף בהמשך. כרגע ההזמנה תישמר במערכת ותוצג לאדמין.
-              </p>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">אמצעי תשלום</h2>
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Lock className="h-3 w-3" />
+                מאובטח SSL
+              </span>
             </div>
+            <PaymentMethods
+              selected={payment}
+              onSelect={setPayment}
+              card={card}
+              onCardChange={setCard}
+            />
           </div>
         </div>
 
-        <div className="h-fit rounded-lg border bg-card p-6">
+        <div className="h-fit rounded-lg border bg-card p-6 lg:sticky lg:top-20">
           <h2 className="text-lg font-semibold">סיכום</h2>
           <div className="mt-4 space-y-2 text-sm">
             {items.map((i) => (
@@ -148,14 +185,31 @@ export default function CheckoutPage() {
               <span className="text-muted-foreground">משלוח</span>
               <span>{shipping === 0 ? "חינם" : formatPrice(shipping)}</span>
             </div>
+            {codFee > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">עמלת COD</span>
+                <span>{formatPrice(codFee)}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t pt-2 text-base font-semibold">
               <span>סה&quot;כ</span>
               <span>{formatPrice(grand)}</span>
             </div>
           </div>
-          <Button type="submit" size="lg" className="mt-6 w-full" disabled={loading}>
-            {loading ? "שולח..." : "אשר הזמנה"}
+
+          <div className="mt-4 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            תשלם ב-<span className="font-medium text-foreground">
+              {PAYMENT_METHOD_LABELS[payment]}
+            </span>
+          </div>
+
+          <Button type="submit" size="lg" className="mt-4 w-full" disabled={loading}>
+            {loading ? "שולח..." : `אשר הזמנה · ${formatPrice(grand)}`}
           </Button>
+
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            <Lock className="inline h-3 w-3" /> תשלום מאובטח · פרטיך מוצפנים
+          </p>
         </div>
       </form>
     </div>

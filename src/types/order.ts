@@ -1,3 +1,5 @@
+import type { PaymentMethod } from "@/lib/validators";
+
 export type OrderStatus =
   | "pending"
   | "paid"
@@ -23,6 +25,7 @@ export type Order = {
   address: string;
   total: number;
   status: OrderStatus;
+  payment_method: PaymentMethod | null;
   created_at: string;
   order_items?: OrderItem[];
 };

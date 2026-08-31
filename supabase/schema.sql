@@ -58,15 +58,16 @@ create trigger on_auth_user_created
 -- 3) ORDERS TABLE
 -- ============================================
 create table if not exists public.orders (
-  id           uuid primary key default uuid_generate_v4(),
-  user_id      uuid references auth.users(id) on delete set null,
-  full_name    text not null default '',
-  email        text not null default '',
-  phone        text not null default '',
-  address      text not null default '',
-  total        numeric(10,2) not null default 0,
-  status       text not null default 'pending' check (status in ('pending','paid','shipped','delivered','cancelled')),
-  created_at   timestamptz not null default now()
+  id             uuid primary key default uuid_generate_v4(),
+  user_id        uuid references auth.users(id) on delete set null,
+  full_name      text not null default '',
+  email          text not null default '',
+  phone          text not null default '',
+  address        text not null default '',
+  total          numeric(10,2) not null default 0,
+  status         text not null default 'pending' check (status in ('pending','paid','shipped','delivered','cancelled')),
+  payment_method text check (payment_method in ('credit_card','bit','paypal','paybox','cash_on_delivery','bank_transfer')),
+  created_at     timestamptz not null default now()
 );
 
 create index if not exists idx_orders_user on public.orders(user_id);
@@ -94,14 +95,32 @@ values ('products', 'products', true)
 on conflict (id) do nothing;
 
 -- ============================================
--- 6) ROW LEVEL SECURITY (RLS)
+-- 6) HELPER FUNCTION (עוקפת RLS למניעת recursion)
+-- ============================================
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists(
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+grant execute on function public.is_admin() to anon, authenticated;
+
+-- ============================================
+-- 7) ROW LEVEL SECURITY (RLS)
 -- ============================================
 alter table public.products    enable row level security;
 alter table public.profiles    enable row level security;
 alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
 
--- Products: כולם יכולים לקרוא, רק אדמין יכול לערוך
+-- Products: כולם קוראים, רק אדמין כותב
 drop policy if exists "products_select_all" on public.products;
 create policy "products_select_all" on public.products
   for select using (true);
@@ -109,27 +128,25 @@ create policy "products_select_all" on public.products
 drop policy if exists "products_admin_write" on public.products;
 create policy "products_admin_write" on public.products
   for all
-  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'))
-  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+  using (public.is_admin())
+  with check (public.is_admin());
 
--- Profiles: משתמש רואה את הפרופיל שלו, אדמין רואה הכל
+-- Profiles: משתמש רואה את שלו, אדמין רואה הכל
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own" on public.profiles
   for select using (
-    auth.uid() = id
-    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    auth.uid() = id or public.is_admin()
   );
 
 drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = id);
 
--- Orders: משתמש רואה את ההזמנות שלו, אדמין רואה הכל
+-- Orders: משתמש רואה את שלו, אדמין רואה הכל
 drop policy if exists "orders_select_own" on public.orders;
 create policy "orders_select_own" on public.orders
   for select using (
-    auth.uid() = user_id
-    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    auth.uid() = user_id or public.is_admin()
   );
 
 drop policy if exists "orders_insert_any" on public.orders;
@@ -138,19 +155,16 @@ create policy "orders_insert_any" on public.orders
 
 drop policy if exists "orders_admin_update" on public.orders;
 create policy "orders_admin_update" on public.orders
-  for update using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  for update using (public.is_admin());
 
--- Order items: כמו orders
+-- Order items
 drop policy if exists "order_items_select" on public.order_items;
 create policy "order_items_select" on public.order_items
   for select using (
     exists (
       select 1 from public.orders o
       where o.id = order_items.order_id
-        and (o.user_id = auth.uid()
-             or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'))
+        and (o.user_id = auth.uid() or public.is_admin())
     )
   );
 
@@ -158,7 +172,7 @@ drop policy if exists "order_items_insert" on public.order_items;
 create policy "order_items_insert" on public.order_items
   for insert with check (true);
 
--- Storage: תמונות מוצרים - קריאה פומבית, כתיבה למחוברים
+-- Storage: קריאה פומבית, כתיבה לאדמין
 drop policy if exists "products_bucket_read" on storage.objects;
 create policy "products_bucket_read" on storage.objects
   for select using (bucket_id = 'products');
@@ -166,12 +180,11 @@ create policy "products_bucket_read" on storage.objects
 drop policy if exists "products_bucket_admin_write" on storage.objects;
 create policy "products_bucket_admin_write" on storage.objects
   for insert with check (
-    bucket_id = 'products'
-    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    bucket_id = 'products' and public.is_admin()
   );
 
 -- ============================================
--- 7) SEED DATA (דמו - אופציונלי)
+-- 8) SEED DATA (דמו - אופציונלי)
 -- ============================================
 insert into public.products (name, description, price, category, image_url, stock) values
   ('Nike Air Hoodie',       'Comfortable oversized hoodie perfect for winter days.',        250, 'Men',    'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800', 20),

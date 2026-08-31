@@ -47,6 +47,7 @@ export async function POST(request: Request) {
       phone: parsed.data.phone,
       address: parsed.data.address,
       total: parsed.data.total,
+      payment_method: parsed.data.payment_method,
       status: "pending",
     })
     .select()

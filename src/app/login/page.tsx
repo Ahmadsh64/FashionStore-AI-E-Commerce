@@ -26,8 +26,17 @@ export default function LoginPage() {
       router.push("/");
       router.refresh();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "שגיאה בהתחברות";
-      toast.error(msg);
+      const raw = err instanceof Error ? err.message : "";
+      let friendly = "שגיאה בהתחברות";
+      if (/invalid login credentials/i.test(raw)) {
+        friendly = "אימייל או סיסמה שגויים. אם עוד לא נרשמת - הירשם קודם.";
+      } else if (/email not confirmed/i.test(raw)) {
+        friendly =
+          "המייל עדיין לא אושר. בדוק את תיבת הדואר שלך ולחץ על הלינק לאישור.";
+      } else if (raw) {
+        friendly = raw;
+      }
+      toast.error(friendly);
     } finally {
       setLoading(false);
     }
