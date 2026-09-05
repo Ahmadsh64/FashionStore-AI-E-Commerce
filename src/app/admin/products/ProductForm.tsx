@@ -37,6 +37,7 @@ export function ProductForm({ product }: Props) {
     description: product?.description ?? "",
     price: product?.price ?? 0,
     category: product?.category ?? CATEGORIES[0],
+    brand: product?.brand ?? "",
     image_url: product?.image_url ?? "",
     images: product?.images ?? [],
     sizes: product?.sizes ?? [],
@@ -183,6 +184,16 @@ export function ProductForm({ product }: Props) {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={4}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="brand">מותג</Label>
+          <Input
+            id="brand"
+            value={form.brand}
+            onChange={(e) => setForm({ ...form, brand: e.target.value })}
+            placeholder="Nike, Zara, H&M..."
           />
         </div>
 

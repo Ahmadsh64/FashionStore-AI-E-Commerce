@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, ShoppingCart, Heart } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/store/cart";
+import { WishlistButton } from "@/components/WishlistButton";
 import { cn } from "@/lib/utils";
 
 export function AddToCartButton({ product }: { product: Product }) {
@@ -147,14 +148,7 @@ export function AddToCartButton({ product }: { product: Product }) {
           <ShoppingCart className="h-4 w-4" />
           הוסף לסל
         </Button>
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-11 w-11"
-          aria-label="הוסף למועדפים"
-        >
-          <Heart className="h-4 w-4" />
-        </Button>
+        <WishlistButton productId={product.id} productName={product.name} size="lg" />
       </div>
     </div>
   );

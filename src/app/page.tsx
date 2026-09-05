@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowLeft, Sparkles, Truck, ShieldCheck, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/types/product";
 
@@ -13,7 +14,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
       .from("products")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(4);
+      .limit(24);
     return (data as Product[]) ?? [];
   } catch {
     return [];
@@ -160,10 +161,16 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => (
+            {products.slice(0, 4).map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
+        </section>
+      )}
+
+      {products.length > 0 && (
+        <section className="container pb-16">
+          <RecentlyViewed products={products} />
         </section>
       )}
 

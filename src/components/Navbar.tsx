@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ShoppingBag, Menu, X, User, LogOut, Shield, Search } from "lucide-react";
+import { ShoppingBag, Menu, X, User, LogOut, Shield, Search, Heart } from "lucide-react";
 import { useCart } from "@/store/cart";
+import { useWishlist } from "@/store/wishlist";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -27,6 +29,7 @@ export function Navbar() {
   const [role, setRole] = useState<"customer" | "admin" | null>(null);
   const [query, setQuery] = useState("");
   const count = useCart((s) => s.getCount());
+  const wishCount = useWishlist((s) => s.getCount());
 
   useEffect(() => setMounted(true), []);
 
@@ -109,7 +112,18 @@ export function Navbar() {
           </div>
         </form>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
+          <Link href="/wishlist" className="relative hidden sm:block">
+            <Button variant="ghost" size="icon" aria-label="מועדפים">
+              <Heart className="h-5 w-5" />
+              {mounted && wishCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {wishCount}
+                </span>
+              )}
+            </Button>
+          </Link>
           {role === "admin" && (
             <Link href="/admin">
               <Button variant="ghost" size="sm" className="hidden lg:inline-flex">
@@ -196,6 +210,13 @@ export function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              <Link
+                href="/wishlist"
+                onClick={() => setOpen(false)}
+                className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+              >
+                מועדפים
+              </Link>
               {email && (
                 <Link
                   href="/account"

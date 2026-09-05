@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { WishlistButton } from "@/components/WishlistButton";
 
 type Props = { product: Product };
 
@@ -58,6 +59,13 @@ export function ProductCard({ product }: Props) {
           <Badge variant="secondary">{product.category}</Badge>
           {outOfStock && <Badge variant="destructive">אזל</Badge>}
           {lowStock && <Badge variant="warning">נותרו {product.stock}</Badge>}
+        </div>
+        <div className="absolute top-2 right-2">
+          <WishlistButton
+            productId={product.id}
+            productName={product.name}
+            className="h-8 w-8 bg-background/80 backdrop-blur"
+          />
         </div>
       </div>
 

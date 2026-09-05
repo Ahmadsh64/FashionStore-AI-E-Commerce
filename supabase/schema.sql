@@ -21,6 +21,7 @@ create table if not exists public.products (
   images        text[] not null default '{}',
   sizes         text[] not null default '{}',
   colors        text[] not null default '{}',
+  brand         text not null default '',
   stock         integer not null default 0 check (stock >= 0),
   created_at    timestamptz not null default now()
 );
@@ -98,6 +99,22 @@ create table if not exists public.order_items (
 create index if not exists idx_order_items_order on public.order_items(order_id);
 
 -- ============================================
+-- 4b) REVIEWS
+-- ============================================
+create table if not exists public.reviews (
+  id          uuid primary key default uuid_generate_v4(),
+  product_id  uuid not null references public.products(id) on delete cascade,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  author_name text not null default '',
+  rating      integer not null check (rating between 1 and 5),
+  comment     text not null default '',
+  created_at  timestamptz not null default now(),
+  unique (product_id, user_id)
+);
+
+create index if not exists idx_reviews_product on public.reviews(product_id);
+
+-- ============================================
 -- 5) STORAGE BUCKET (רץ ידנית ב-Supabase Dashboard או דרך SQL כאן)
 -- ============================================
 insert into storage.buckets (id, name, public)
@@ -129,6 +146,7 @@ alter table public.products    enable row level security;
 alter table public.profiles    enable row level security;
 alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
+alter table public.reviews     enable row level security;
 
 -- Products: כולם קוראים, רק אדמין כותב
 drop policy if exists "products_select_all" on public.products;
@@ -181,6 +199,23 @@ create policy "order_items_select" on public.order_items
 drop policy if exists "order_items_insert" on public.order_items;
 create policy "order_items_insert" on public.order_items
   for insert with check (true);
+
+-- Reviews
+drop policy if exists "reviews_select_all" on public.reviews;
+create policy "reviews_select_all" on public.reviews
+  for select using (true);
+
+drop policy if exists "reviews_insert_own" on public.reviews;
+create policy "reviews_insert_own" on public.reviews
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "reviews_update_own" on public.reviews;
+create policy "reviews_update_own" on public.reviews
+  for update using (auth.uid() = user_id or public.is_admin());
+
+drop policy if exists "reviews_delete_own" on public.reviews;
+create policy "reviews_delete_own" on public.reviews
+  for delete using (auth.uid() = user_id or public.is_admin());
 
 -- Storage: קריאה פומבית, כתיבה לאדמין
 drop policy if exists "products_bucket_read" on storage.objects;

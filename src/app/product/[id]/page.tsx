@@ -3,9 +3,15 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Package, Truck, RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { type Product, getProductGallery } from "@/types/product";
+import type { Review } from "@/types/review";
+import { summarizeReviews } from "@/types/review";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/ProductGallery";
+import { ProductReviews } from "@/components/ProductReviews";
+import { RelatedProducts } from "@/components/RelatedProducts";
+import { RecentlyViewed, TrackRecentlyViewed } from "@/components/RecentlyViewed";
+import { StarRating } from "@/components/StarRating";
 import { AddToCartButton } from "./AddToCartButton";
 
 async function getProduct(id: string): Promise<Product | null> {
@@ -18,6 +24,49 @@ async function getProduct(id: string): Promise<Product | null> {
   }
 }
 
+async function getReviews(productId: string): Promise<Review[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("product_id", productId)
+      .order("created_at", { ascending: false });
+    return (data as Review[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function getRelated(product: Product): Promise<Product[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .eq("category", product.category)
+      .neq("id", product.id)
+      .limit(4);
+    return (data as Product[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function getRecentCandidates(): Promise<Product[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(24);
+    return (data as Product[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -27,8 +76,16 @@ export default async function ProductDetailPage({
   const product = await getProduct(id);
   if (!product) notFound();
 
+  const [reviews, related, recentPool] = await Promise.all([
+    getReviews(id),
+    getRelated(product),
+    getRecentCandidates(),
+  ]);
+  const summary = summarizeReviews(reviews);
+
   return (
     <div className="container py-8">
+      <TrackRecentlyViewed productId={product.id} />
       <Link
         href="/products"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -41,10 +98,16 @@ export default async function ProductDetailPage({
         <ProductGallery images={getProductGallery(product)} alt={product.name} />
 
         <div>
-          <Badge variant="secondary" className="mb-3">
-            {product.category}
-          </Badge>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">{product.category}</Badge>
+            {product.brand && <Badge variant="outline">{product.brand}</Badge>}
+          </div>
           <h1 className="text-3xl font-bold">{product.name}</h1>
+          {summary.count > 0 && (
+            <div className="mt-2">
+              <StarRating value={summary.average} count={summary.count} size="md" />
+            </div>
+          )}
           <p className="mt-4 text-3xl font-bold text-primary">
             {formatPrice(product.price)}
           </p>
@@ -89,6 +152,10 @@ export default async function ProductDetailPage({
           </div>
         </div>
       </div>
+
+      <RelatedProducts products={related} />
+      <ProductReviews productId={product.id} initialReviews={reviews} />
+      <RecentlyViewed products={recentPool} excludeId={product.id} />
     </div>
   );
 }

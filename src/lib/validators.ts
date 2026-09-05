@@ -5,6 +5,7 @@ export const productSchema = z.object({
   description: z.string().default(""),
   price: z.coerce.number().min(0, "מחיר חייב להיות חיובי"),
   category: z.string().min(1, "יש לבחור קטגוריה"),
+  brand: z.string().default(""),
   image_url: z.string().url("URL לא תקין").or(z.literal("")),
   images: z.array(z.string().url()).default([]),
   sizes: z.array(z.string().min(1)).default([]),

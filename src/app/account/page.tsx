@@ -92,6 +92,13 @@ export default async function AccountPage() {
 
           <div className="space-y-1 border-t pt-4">
             <Link
+              href="/wishlist"
+              className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent"
+            >
+              <span>המועדפים שלי</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+            <Link
               href="/products"
               className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent"
             >
