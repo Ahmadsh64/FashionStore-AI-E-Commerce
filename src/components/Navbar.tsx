@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ShoppingBag, Menu, X, User, LogOut, Shield } from "lucide-react";
+import { ShoppingBag, Menu, X, User, LogOut, Shield, Search } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -24,6 +25,7 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [role, setRole] = useState<"customer" | "admin" | null>(null);
+  const [query, setQuery] = useState("");
   const count = useCart((s) => s.getCount());
 
   useEffect(() => setMounted(true), []);
@@ -59,15 +61,26 @@ export function Navbar() {
     router.refresh();
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) {
+      router.push("/products");
+      return;
+    }
+    router.push(`/products?q=${encodeURIComponent(q)}`);
+    setOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight">
+      <div className="container flex h-16 items-center justify-between gap-4">
+        <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
           <span className="rounded-md bg-primary px-2 py-1 text-primary-foreground">FS</span>
-          <span>FashionStore</span>
+          <span className="hidden sm:inline">FashionStore</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -82,25 +95,48 @@ export function Navbar() {
           ))}
         </nav>
 
+        <form onSubmit={handleSearch} className="hidden max-w-sm flex-1 md:flex">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="חפש מוצרים..."
+              className="pr-9"
+              aria-label="חיפוש מוצרים"
+            />
+          </div>
+        </form>
+
         <div className="flex items-center gap-2">
           {role === "admin" && (
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" className="hidden lg:inline-flex">
                 <Shield className="h-4 w-4" />
                 Admin
               </Button>
             </Link>
           )}
           {email ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4" />
-              יציאה
-            </Button>
+            <>
+              <Link href="/account">
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  <User className="h-4 w-4" />
+                  <span className="hidden lg:inline">החשבון שלי</span>
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden sm:inline-flex"
+                onClick={handleLogout}
+                aria-label="יציאה"
+                title="יציאה"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
           ) : (
             <Link href="/login">
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
@@ -124,7 +160,7 @@ export function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setOpen(!open)}
             aria-label="Menu"
           >
@@ -134,44 +170,68 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t md:hidden">
-          <nav className="container flex flex-col gap-1 py-3">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm hover:bg-accent"
-              >
-                {item.label}
-              </Link>
-            ))}
-            {role === "admin" && (
-              <Link
-                href="/admin"
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm hover:bg-accent"
-              >
-                Admin
-              </Link>
-            )}
-            {email ? (
-              <button
-                onClick={handleLogout}
-                className="rounded-md px-3 py-2 text-right text-sm hover:bg-accent"
-              >
-                יציאה ({email})
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm hover:bg-accent"
-              >
-                כניסה
-              </Link>
-            )}
-          </nav>
+        <div className="border-t lg:hidden">
+          <div className="container py-3">
+            <form onSubmit={handleSearch} className="mb-3 md:hidden">
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="חפש מוצרים..."
+                  className="pr-9"
+                  aria-label="חיפוש מוצרים"
+                />
+              </div>
+            </form>
+            <nav className="flex flex-col gap-1">
+              {NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {email && (
+                <Link
+                  href="/account"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                >
+                  החשבון שלי
+                </Link>
+              )}
+              {role === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                >
+                  Admin
+                </Link>
+              )}
+              {email ? (
+                <button
+                  onClick={handleLogout}
+                  className="rounded-md px-3 py-2 text-right text-sm hover:bg-accent"
+                >
+                  יציאה ({email})
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                >
+                  כניסה
+                </Link>
+              )}
+            </nav>
+          </div>
         </div>
       )}
     </header>

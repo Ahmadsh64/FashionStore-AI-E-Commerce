@@ -18,6 +18,9 @@ create table if not exists public.products (
   price         numeric(10,2) not null check (price >= 0),
   category      text not null default 'Other',
   image_url     text default '',
+  images        text[] not null default '{}',
+  sizes         text[] not null default '{}',
+  colors        text[] not null default '{}',
   stock         integer not null default 0 check (stock >= 0),
   created_at    timestamptz not null default now()
 );
@@ -58,17 +61,22 @@ create trigger on_auth_user_created
 -- 3) ORDERS TABLE
 -- ============================================
 create table if not exists public.orders (
-  id             uuid primary key default uuid_generate_v4(),
-  user_id        uuid references auth.users(id) on delete set null,
-  full_name      text not null default '',
-  email          text not null default '',
-  phone          text not null default '',
-  address        text not null default '',
-  total          numeric(10,2) not null default 0,
-  status         text not null default 'pending' check (status in ('pending','paid','shipped','delivered','cancelled')),
-  payment_method text check (payment_method in ('credit_card','bit','paypal','paybox','cash_on_delivery','bank_transfer')),
-  created_at     timestamptz not null default now()
+  id                     uuid primary key default uuid_generate_v4(),
+  user_id                uuid references auth.users(id) on delete set null,
+  full_name              text not null default '',
+  email                  text not null default '',
+  phone                  text not null default '',
+  address                text not null default '',
+  total                  numeric(10,2) not null default 0,
+  status                 text not null default 'pending' check (status in ('pending','paid','shipped','delivered','cancelled')),
+  payment_method         text check (payment_method in ('credit_card','bit','paypal','paybox','cash_on_delivery','bank_transfer','stripe')),
+  stripe_session_id      text,
+  stripe_payment_intent  text,
+  created_at             timestamptz not null default now()
 );
+
+create index if not exists idx_orders_stripe_session
+  on public.orders(stripe_session_id);
 
 create index if not exists idx_orders_user on public.orders(user_id);
 create index if not exists idx_orders_created_at on public.orders(created_at desc);
@@ -82,7 +90,9 @@ create table if not exists public.order_items (
   product_id  uuid references public.products(id) on delete set null,
   name        text not null,
   quantity    integer not null check (quantity > 0),
-  price       numeric(10,2) not null check (price >= 0)
+  price       numeric(10,2) not null check (price >= 0),
+  size        text,
+  color       text
 );
 
 create index if not exists idx_order_items_order on public.order_items(order_id);

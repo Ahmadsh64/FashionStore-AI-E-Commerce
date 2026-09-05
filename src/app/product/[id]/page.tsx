@@ -1,11 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Package, Truck, RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import type { Product } from "@/types/product";
+import { type Product, getProductGallery } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { ProductGallery } from "@/components/ProductGallery";
 import { AddToCartButton } from "./AddToCartButton";
 
 async function getProduct(id: string): Promise<Product | null> {
@@ -38,22 +38,7 @@ export default async function ProductDetailPage({
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              priority
-              className="object-cover"
-              sizes="(min-width: 768px) 50vw, 100vw"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              אין תמונה
-            </div>
-          )}
-        </div>
+        <ProductGallery images={getProductGallery(product)} alt={product.name} />
 
         <div>
           <Badge variant="secondary" className="mb-3">

@@ -13,6 +13,8 @@ const orderSchema = checkoutSchema.extend({
         name: z.string(),
         quantity: z.number().int().min(1),
         price: z.coerce.number().min(0),
+        size: z.string().optional().nullable(),
+        color: z.string().optional().nullable(),
       }),
     )
     .min(1, "הסל ריק"),
@@ -66,11 +68,33 @@ export async function POST(request: Request) {
     name: i.name,
     quantity: i.quantity,
     price: i.price,
+    size: i.size ?? null,
+    color: i.color ?? null,
   }));
 
   const { error: itemsErr } = await db.from("order_items").insert(itemsPayload);
   if (itemsErr) {
     return NextResponse.json({ error: itemsErr.message }, { status: 500 });
+  }
+
+  // שליחת מייל אישור הזמנה - non-blocking, לא נכשלים אם המייל נכשל
+  try {
+    const { sendOrderConfirmationEmail } = await import("@/lib/emails");
+    await sendOrderConfirmationEmail({
+      to: parsed.data.email,
+      customerName: parsed.data.full_name,
+      orderId: order.id,
+      total: parsed.data.total,
+      items: parsed.data.items.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        size: i.size ?? undefined,
+        color: i.color ?? undefined,
+      })),
+    });
+  } catch (e) {
+    console.error("Failed to send order confirmation email:", e);
   }
 
   return NextResponse.json({ order_id: order.id }, { status: 201 });

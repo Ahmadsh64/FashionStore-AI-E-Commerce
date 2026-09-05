@@ -14,6 +14,8 @@ export type OrderItem = {
   name: string;
   quantity: number;
   price: number;
+  size: string | null;
+  color: string | null;
 };
 
 export type Order = {

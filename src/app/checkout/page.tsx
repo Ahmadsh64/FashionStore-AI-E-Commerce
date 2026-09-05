@@ -72,6 +72,35 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      // אם המשתמש בחר Stripe - מפנים ישירות ל-Stripe Checkout
+      if (payment === "stripe") {
+        const res = await fetch("/api/checkout/stripe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...parsed.data,
+            items: items.map((i) => ({
+              product_id: i.id,
+              name: i.name,
+              quantity: i.quantity,
+              price: i.price,
+              image_url: i.image_url,
+              size: i.size ?? null,
+              color: i.color ?? null,
+            })),
+            total: grand,
+            shipping,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "שגיאה ב-Stripe");
+        if (data.url) {
+          window.location.href = data.url as string;
+          return;
+        }
+        throw new Error("Stripe לא החזיר URL");
+      }
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,6 +111,8 @@ export default function CheckoutPage() {
             name: i.name,
             quantity: i.quantity,
             price: i.price,
+            size: i.size ?? null,
+            color: i.color ?? null,
           })),
           total: grand,
         }),
@@ -173,14 +204,18 @@ export default function CheckoutPage() {
         <div className="h-fit rounded-lg border bg-card p-6 lg:sticky lg:top-20">
           <h2 className="text-lg font-semibold">סיכום</h2>
           <div className="mt-4 space-y-2 text-sm">
-            {items.map((i) => (
-              <div key={i.id} className="flex justify-between">
-                <span className="text-muted-foreground">
-                  {i.name} × {i.quantity}
-                </span>
-                <span>{formatPrice(i.price * i.quantity)}</span>
-              </div>
-            ))}
+            {items.map((i) => {
+              const variant = [i.size, i.color].filter(Boolean).join(" · ");
+              return (
+                <div key={i.key} className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {i.name}
+                    {variant && ` (${variant})`} × {i.quantity}
+                  </span>
+                  <span>{formatPrice(i.price * i.quantity)}</span>
+                </div>
+              );
+            })}
             <div className="flex justify-between border-t pt-2">
               <span className="text-muted-foreground">משלוח</span>
               <span>{shipping === 0 ? "חינם" : formatPrice(shipping)}</span>

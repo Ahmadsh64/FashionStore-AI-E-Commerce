@@ -6,12 +6,16 @@ export const productSchema = z.object({
   price: z.coerce.number().min(0, "מחיר חייב להיות חיובי"),
   category: z.string().min(1, "יש לבחור קטגוריה"),
   image_url: z.string().url("URL לא תקין").or(z.literal("")),
+  images: z.array(z.string().url()).default([]),
+  sizes: z.array(z.string().min(1)).default([]),
+  colors: z.array(z.string().min(1)).default([]),
   stock: z.coerce.number().int().min(0, "מלאי חייב להיות חיובי"),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 export const PAYMENT_METHODS = [
+  "stripe",
   "credit_card",
   "bit",
   "paypal",
@@ -23,6 +27,7 @@ export const PAYMENT_METHODS = [
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  stripe: "Stripe (מאובטח)",
   credit_card: "כרטיס אשראי",
   bit: "Bit",
   paypal: "PayPal",

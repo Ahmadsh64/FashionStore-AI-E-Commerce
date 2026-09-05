@@ -12,6 +12,8 @@ export function CartItem({ item }: Props) {
   const updateQuantity = useCart((s) => s.updateQuantity);
   const removeProduct = useCart((s) => s.removeProduct);
 
+  const variantLabel = [item.size, item.color].filter(Boolean).join(" · ");
+
   return (
     <div className="flex gap-4 rounded-lg border bg-card p-4">
       <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
@@ -24,12 +26,15 @@ export function CartItem({ item }: Props) {
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="font-medium">{item.name}</h3>
+            {variantLabel && (
+              <p className="text-xs text-muted-foreground">{variantLabel}</p>
+            )}
             <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => removeProduct(item.id)}
+            onClick={() => removeProduct(item.key)}
             aria-label="הסר"
           >
             <Trash2 className="h-4 w-4" />
@@ -42,7 +47,7 @@ export function CartItem({ item }: Props) {
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-none"
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+              onClick={() => updateQuantity(item.key, item.quantity - 1)}
               aria-label="הפחת"
             >
               <Minus className="h-3 w-3" />
@@ -52,7 +57,7 @@ export function CartItem({ item }: Props) {
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-none"
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+              onClick={() => updateQuantity(item.key, item.quantity + 1)}
               disabled={item.quantity >= item.stock}
               aria-label="הוסף"
             >

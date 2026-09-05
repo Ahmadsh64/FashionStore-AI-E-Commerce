@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, Smartphone, Wallet, Banknote, Building2 } from "lucide-react";
+import { CreditCard, Smartphone, Wallet, Banknote, Building2, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,11 @@ const METHOD_META: Record<
   PaymentMethod,
   { icon: React.ComponentType<{ className?: string }>; desc: string; color: string }
 > = {
+  stripe: {
+    icon: Lock,
+    desc: "תשלום מאובטח דרך Stripe · כל הכרטיסים",
+    color: "text-violet-600",
+  },
   credit_card: {
     icon: CreditCard,
     desc: "Visa · Mastercard · Amex · Isracard",
@@ -213,6 +218,16 @@ export function PaymentMethods({ selected, onSelect, card, onCardChange }: Props
 
           <p className="text-xs text-muted-foreground">
             🔒 פרטי הכרטיס מוצפנים ולא נשמרים אצלנו. שילוב מלא של Stripe יתווסף בשלב הפריסה.
+          </p>
+        </div>
+      )}
+
+      {selected === "stripe" && (
+        <div className="rounded-lg border bg-violet-50 p-4 text-sm dark:bg-violet-950/20">
+          <p className="font-medium">💳 תשלום מאובטח דרך Stripe</p>
+          <p className="mt-1 text-muted-foreground">
+            לאחר לחיצה על &quot;אשר הזמנה&quot; תועבר לעמוד תשלום מאובטח של Stripe. תומך בכל
+            כרטיסי האשראי בעולם (Visa, Mastercard, Amex וכו&apos;) ותשלומים מקומיים.
           </p>
         </div>
       )}

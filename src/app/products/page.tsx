@@ -13,7 +13,13 @@ async function loadProducts({ category, q, sort }: Search): Promise<Product[]> {
     let query = supabase.from("products").select("*");
 
     if (category) query = query.eq("category", category);
-    if (q) query = query.ilike("name", `%${q}%`);
+    if (q) {
+      // חיפוש בשם או בתיאור או בקטגוריה
+      const term = q.replace(/[%_]/g, "");
+      query = query.or(
+        `name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`,
+      );
+    }
 
     if (sort === "price_asc") query = query.order("price", { ascending: true });
     else if (sort === "price_desc") query = query.order("price", { ascending: false });
@@ -39,10 +45,22 @@ export default async function ProductsPage({
     <div className="container py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">
-          {active ? `${active}` : "כל המוצרים"}
+          {params.q
+            ? `תוצאות חיפוש עבור "${params.q}"`
+            : active
+              ? active
+              : "כל המוצרים"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {products.length} מוצרים
+          {params.q && (
+            <>
+              {" · "}
+              <Link href="/products" className="underline hover:text-foreground">
+                נקה חיפוש
+              </Link>
+            </>
+          )}
         </p>
       </div>
 

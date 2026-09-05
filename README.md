@@ -5,12 +5,16 @@
 כוללת:
 
 - דף בית מודרני עם קטגוריות ו־Hero
-- קטלוג מוצרים עם סינון לפי קטגוריה
-- עמוד מוצר עם הוספה לסל בכמויות
+- קטלוג מוצרים עם סינון לפי קטגוריה + **חיפוש חופשי** ב-Navbar
+- עמוד מוצר עם **גלריית תמונות + zoom מלא**
+- **וריאציות מוצר** (מידה + צבע) עם בדיקה בהוספה לסל
 - סל קניות מלא (Zustand + persist ל־localStorage)
-- Checkout ושמירת הזמנה במסד הנתונים
-- Auth: הרשמה/כניסה עם Supabase Auth
-- **Admin Panel** מלא: Dashboard, ניהול מוצרים (CRUD), העלאת תמונות ל־Supabase Storage, ניהול הזמנות ולקוחות
+- Checkout עם **6 אמצעי תשלום** כולל **Stripe Checkout Session**
+- **Webhook של Stripe** לאישור אוטומטי של תשלומים
+- **מיילי אישור הזמנה** עם Resend (אישור + עדכוני סטטוס)
+- Auth: הרשמה/כניסה + **שכחתי סיסמה + איפוס** דרך Supabase Auth
+- **דף חשבון אישי** עם היסטוריית הזמנות ומעקב סטטוס
+- **Admin Panel** מלא: Dashboard, ניהול מוצרים (CRUD), העלאת תמונות ל־Supabase Storage, ניהול וריאציות + גלריה, ניהול הזמנות ולקוחות
 - **AI Assistant** (chat widget) עם fallback מקומי — עם/בלי OpenAI API
 - Row Level Security (RLS) מלא ב־Supabase
 - RTL בעברית
@@ -100,18 +104,31 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 
 # אופציונלי - AI Assistant:
 OPENAI_API_KEY=sk-...
+
+# אופציונלי - Stripe (סליקה מאובטחת):
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_CURRENCY=ils
+
+# אופציונלי - Resend (מיילי אישור הזמנה):
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=FashionStore <onboarding@resend.dev>
 ```
 
 > אין `OPENAI_API_KEY`? ה־AI ייפול חזרה ל־fallback מקומי (המלצות פשוטות מבוססות מילות מפתח).
+> אין `STRIPE_SECRET_KEY`? כל שאר אמצעי התשלום עדיין יעבדו — Stripe פשוט לא יופיע.
+> אין `RESEND_API_KEY`? הזמנות יעבדו — פשוט לא יישלחו מיילי אישור.
 
 ### 4) הרצת סכמת ה־DB
 
 1. פתח ב־Supabase Dashboard את **SQL Editor**.
 2. הדבק את התוכן של [`supabase/schema.sql`](./supabase/schema.sql) ולחץ **Run**.
+3. אם כבר יש לך פרויקט קיים, הרץ בנוסף את [`supabase/add-variants-and-gallery.sql`](./supabase/add-variants-and-gallery.sql) לתוספת השדות החדשים (מידות, צבעים, גלריית תמונות, Stripe).
 
 הסכמה יוצרת:
 
-- 4 טבלאות: `products`, `profiles`, `orders`, `order_items`
+- 4 טבלאות: `products` (עם `images[]`, `sizes[]`, `colors[]`), `profiles`, `orders` (עם `stripe_session_id`), `order_items` (עם `size`, `color`)
 - Bucket `products` (public) ב־Supabase Storage
 - מדיניות RLS מלאה
 - Trigger שיוצר `profile` אוטומטית לכל משתמש חדש
@@ -144,29 +161,65 @@ npm run dev
 | מסלול | תיאור |
 |-------|-------|
 | `/` | דף בית |
-| `/products` | קטלוג עם סינון (`?category=Men` וכו') |
-| `/product/[id]` | עמוד מוצר בודד |
+| `/products` | קטלוג עם סינון + חיפוש (`?category=Men&q=hoodie`) |
+| `/product/[id]` | עמוד מוצר בודד + גלריית תמונות + בחירת מידה/צבע |
 | `/cart` | סל קניות |
-| `/checkout` | קופה |
+| `/checkout` | קופה עם 6 אמצעי תשלום |
 | `/checkout/success?order=…` | דף אישור |
+| `/account` | 👤 החשבון שלי + היסטוריית הזמנות |
 | `/login` · `/register` | אימות |
+| `/forgot-password` | 🔑 שכחתי סיסמה |
+| `/reset-password` | איפוס סיסמה (מהלינק במייל) |
 | `/admin` | Dashboard (אדמין בלבד) |
 | `/admin/products` | ניהול מוצרים |
-| `/admin/products/new` | הוספת מוצר |
+| `/admin/products/new` | הוספת מוצר + מידות + צבעים + גלריה |
 | `/admin/products/[id]` | עריכת מוצר |
-| `/admin/orders` | ניהול הזמנות + עדכון סטטוס |
+| `/admin/orders` | ניהול הזמנות + עדכון סטטוס (שולח מייל אוטומטית) |
 | `/admin/customers` | רשימת לקוחות |
 
 ### API
 
 | שיטה + מסלול | תיאור |
 |-------|-------|
-| `GET  /api/products?category=&q=` | רשימת מוצרים |
+| `GET  /api/products?category=&q=` | רשימת מוצרים (חיפוש בשם/תיאור/קטגוריה) |
 | `POST /api/products` | יצירת מוצר (admin) |
 | `PUT/DELETE /api/products/[id]` | עדכון/מחיקת מוצר (admin) |
-| `POST /api/orders` | יצירת הזמנה חדשה |
-| `PATCH /api/orders/[id]` | עדכון סטטוס הזמנה (admin) |
+| `POST /api/orders` | יצירת הזמנה חדשה + שליחת מייל אישור |
+| `PATCH /api/orders/[id]` | עדכון סטטוס הזמנה (admin) + מייל עדכון |
+| `POST /api/checkout/stripe` | יצירת Stripe Checkout Session |
+| `POST /api/stripe/webhook` | Webhook של Stripe (checkout.session.completed) |
 | `POST /api/chat` | AI Style Assistant |
+
+---
+
+## 💳 Stripe — הגדרת סליקה
+
+1. הירשם ב-<https://dashboard.stripe.com/register> (חינם, ללא דמי הפעלה)
+2. עבור ל-**Developers → API keys** והעתק:
+   - `Secret key` → `STRIPE_SECRET_KEY`
+   - `Publishable key` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+3. הגדר Webhook: **Developers → Webhooks → Add endpoint**:
+   - URL: `https://your-domain.vercel.app/api/stripe/webhook`
+   - Events: `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`
+   - העתק את ה-`Signing secret` → `STRIPE_WEBHOOK_SECRET`
+4. לפיתוח מקומי — התקן את ה-CLI של Stripe: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+
+בדף ה-checkout בחר **"Stripe (מאובטח)"** — הלקוח יופנה לעמוד תשלום של Stripe.
+
+**כרטיסי בדיקה:** `4242 4242 4242 4242` · תאריך עתידי · CVC כלשהו
+
+---
+
+## 📧 Resend — מיילי אישור הזמנה
+
+1. הירשם ב-<https://resend.com> (100 מיילים ליום חינם)
+2. **API Keys → Create** → העתק את המפתח ל-`RESEND_API_KEY`
+3. לבדיקות אפשר להשתמש ב-`onboarding@resend.dev` (מוגבל לשליחה לעצמך)
+4. לפרודקשן — הוסף דומיין ב-**Domains** ואמת אותו (SPF/DKIM) → עדכן `RESEND_FROM_EMAIL`
+
+מיילים שנשלחים אוטומטית:
+- **אישור הזמנה** — כשלקוח מזמין (או לאחר תשלום מוצלח ב-Stripe)
+- **עדכון סטטוס** — כשהאדמין משנה סטטוס (paid → shipped → delivered)
 
 ---
 

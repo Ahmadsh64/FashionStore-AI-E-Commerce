@@ -78,6 +78,15 @@ export default function LoginPage() {
           </Button>
         </form>
 
+        <div className="mt-4 text-center">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+          >
+            שכחת סיסמה?
+          </Link>
+        </div>
+
         <p className="mt-4 text-center text-sm text-muted-foreground">
           אין לך חשבון?{" "}
           <Link href="/register" className="font-medium text-foreground hover:underline">
