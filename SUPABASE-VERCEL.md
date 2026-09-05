@@ -157,26 +157,15 @@ Vercel לא יכול להריץ SQL על Supabase. **אתה** צריך להרי�
 
 <https://supabase.com/dashboard/project/_/sql/new>
 
-הרץ את התוכן של [`supabase/schema.sql`](./supabase/schema.sql). הקובץ יוצר:
+הרץ **רק** את [`supabase/schema.sql`](./supabase/schema.sql). זה קובץ מאוחד ואידמפוטנטי (בטוח גם על פרויקט קיים). הוא יוצר/מעדכן:
 
-- 4 טבלאות: `products`, `profiles`, `orders`, `order_items`
+- טבלאות: `products`, `profiles`, `orders`, `order_items`, `reviews`, `coupons`, `newsletter`, `posts`, `contact_messages`, `abandoned_carts`, `marketing_sends`
 - Bucket `products` ב-Storage
-- 8 RLS policies
-- Trigger `handle_new_user()` — יוצר profile אוטומטית ברישום
-- פונקציה `is_admin()` — עוקפת RLS (למניעת recursion)
-- 8 מוצרי דמו
+- RLS + `is_admin()` (בלי recursion)
+- Trigger `handle_new_user()`
+- Seed: מוצרים, קופונים (`WELCOME10`, `SUMMER50`), מאמרי בלוג
 
-### ב. Migrations לפרויקט קיים
-
-יש תיקיה `supabase/` עם קבצי migration ליצירה מדורגת:
-
-| קובץ | מטרה | מתי להריץ |
-|-------|-------|-----------|
-| `schema.sql` | סכמה מלאה + seed | פעם ראשונה על פרויקט חדש |
-| `fix-rls-recursion.sql` | תיקון recursion ב-policies | אם יש 500 על `/profiles` |
-| `add-payment-method.sql` | הוספת עמודה `payment_method` | אם עדכנת מגרסה ישנה |
-
-**כלל אצבע:** כל אחד מהם ב-`if not exists` / `create or replace` — בטוח להריץ שוב.
+אין צורך להריץ קבצי migration ישנים — כולם כלולים כאן.
 
 ---
 
@@ -237,7 +226,7 @@ $html.Content | Select-String -Pattern "supabase\.co|supabase\.com/dashboard" -A
 **סיבה:** Infinite recursion ב-RLS policy של `profiles` (הפוליסי מבצע sub-select על עצמה).
 
 **תיקון:**
-הרץ את [`supabase/fix-rls-recursion.sql`](./supabase/fix-rls-recursion.sql) ב-SQL Editor. הוא יוצר פונקציית `is_admin()` עם `SECURITY DEFINER` ומחליף את הפוליסיות.
+הרץ מחדש את [`supabase/schema.sql`](./supabase/schema.sql). הוא יוצר את `is_admin()` עם `SECURITY DEFINER` ומעדכן את כל הפוליסיות.
 
 ### שגיאה: `Invalid login credentials` בהרשמה תקינה
 

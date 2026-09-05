@@ -124,14 +124,15 @@ RESEND_FROM_EMAIL=FashionStore <onboarding@resend.dev>
 
 1. פתח ב־Supabase Dashboard את **SQL Editor**.
 2. הדבק את התוכן של [`supabase/schema.sql`](./supabase/schema.sql) ולחץ **Run**.
-3. אם כבר יש לך פרויקט קיים, הרץ בנוסף את [`supabase/add-variants-and-gallery.sql`](./supabase/add-variants-and-gallery.sql) לתוספת השדות החדשים (מידות, צבעים, גלריית תמונות, Stripe).
+   הקובץ מאוחד ואידמפוטנטי — עובד גם על פרויקט חדש וגם על קיים, בלי לשכפל נתונים.
 
-הסכמה יוצרת:
+הסכמה יוצרת / מעדכנת:
 
-- 4 טבלאות: `products` (עם `images[]`, `sizes[]`, `colors[]`), `profiles`, `orders` (עם `stripe_session_id`), `order_items` (עם `size`, `color`)
+- טבלאות: `products`, `profiles`, `orders`, `order_items`, `reviews`, `coupons`, `newsletter`, `posts`, `contact_messages`, `abandoned_carts`, `marketing_sends`
 - Bucket `products` (public) ב־Supabase Storage
-- מדיניות RLS מלאה
+- מדיניות RLS + `is_admin()` (בלי recursion)
 - Trigger שיוצר `profile` אוטומטית לכל משתמש חדש
+- Seed: מוצרים, קופונים, מאמרי בלוג
 - **8 מוצרי דמו** להתחלה מהירה 🎁
 
 ### 5) הפיכת משתמש לאדמין

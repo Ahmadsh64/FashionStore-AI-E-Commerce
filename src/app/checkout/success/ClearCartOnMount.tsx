@@ -11,6 +11,12 @@ export function ClearCartOnMount() {
   const clearCart = useCart((s) => s.clearCart);
   useEffect(() => {
     clearCart();
+    const email = localStorage.getItem("fashion-store-email");
+    if (email) {
+      fetch(`/api/abandoned-cart?email=${encodeURIComponent(email)}`, {
+        method: "DELETE",
+      }).catch(() => {});
+    }
   }, [clearCart]);
   return null;
 }

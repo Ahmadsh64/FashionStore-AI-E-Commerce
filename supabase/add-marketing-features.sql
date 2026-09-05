@@ -1,0 +1,2 @@
+-- הועבר ל-schema.sql המאוחד (קופונים, ניוזלטר, בלוג, עגלה נטושה).
+-- הרץ רק את supabase/schema.sql ב-SQL Editor.

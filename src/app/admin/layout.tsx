@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Users } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, Ticket, Newspaper } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +22,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/products", label: "מוצרים", icon: Package },
     { href: "/admin/orders", label: "הזמנות", icon: ShoppingCart },
     { href: "/admin/customers", label: "לקוחות", icon: Users },
+    { href: "/admin/coupons", label: "קופונים", icon: Ticket },
+    { href: "/admin/blog", label: "מגזין", icon: Newspaper },
   ];
 
   return (

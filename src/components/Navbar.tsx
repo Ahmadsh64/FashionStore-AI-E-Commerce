@@ -17,7 +17,7 @@ const NAV = [
   { href: "/products", label: "מוצרים" },
   { href: "/products?category=Men", label: "גברים" },
   { href: "/products?category=Women", label: "נשים" },
-  { href: "/products?category=Kids", label: "ילדים" },
+  { href: "/blog", label: "מגזין" },
 ];
 
 export function Navbar() {

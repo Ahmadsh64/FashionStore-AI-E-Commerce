@@ -4,10 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { checkoutSchema } from "@/lib/validators";
+import { computeCouponDiscount, type Coupon } from "@/lib/coupons";
 
 const bodySchema = checkoutSchema.extend({
   total: z.coerce.number().min(1),
   shipping: z.coerce.number().min(0).default(0),
+  coupon_code: z.string().optional().nullable(),
   items: z
     .array(
       z.object({
@@ -52,6 +54,34 @@ export async function POST(request: Request) {
   const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
   const db = hasServiceKey ? createAdminClient() : supabase;
 
+  let discount = 0;
+  let couponCode: string | null = null;
+  if (parsed.data.coupon_code) {
+    const { data: coupon } = await db
+      .from("coupons")
+      .select("*")
+      .eq("code", parsed.data.coupon_code.trim().toUpperCase())
+      .maybeSingle();
+    if (coupon) {
+      const subtotal = parsed.data.items.reduce(
+        (s, i) => s + i.price * i.quantity,
+        0,
+      );
+      try {
+        const applied = computeCouponDiscount(coupon as Coupon, subtotal);
+        discount = applied.discount;
+        couponCode = applied.code;
+        await db
+          .from("coupons")
+          .update({ used_count: (coupon.used_count ?? 0) + 1 })
+          .eq("id", coupon.id);
+      } catch {
+        discount = 0;
+        couponCode = null;
+      }
+    }
+  }
+
   // 1) יוצרים הזמנה pending ב-DB לפני שיוצרים את ה-session
   const { data: order, error: orderErr } = await db
     .from("orders")
@@ -64,6 +94,8 @@ export async function POST(request: Request) {
       total: parsed.data.total,
       payment_method: "stripe",
       status: "pending",
+      coupon_code: couponCode,
+      discount,
     })
     .select()
     .single();
@@ -125,12 +157,26 @@ export async function POST(request: Request) {
   }
 
   try {
+    let stripeDiscount:
+      | import("stripe").Stripe.Checkout.SessionCreateParams.Discount[]
+      | undefined;
+    if (discount > 0) {
+      const stripeCoupon = await stripe.coupons.create({
+        amount_off: Math.round(discount * 100),
+        currency,
+        duration: "once",
+        name: couponCode ?? "הנחה",
+      });
+      stripeDiscount = [{ coupon: stripeCoupon.id }];
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: lineItems,
       customer_email: parsed.data.email,
       success_url: `${origin}/checkout/success?order=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout?cancelled=1`,
+      discounts: stripeDiscount,
       metadata: {
         order_id: order.id,
       },

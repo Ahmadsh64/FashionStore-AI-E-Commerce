@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/ProductCard";
@@ -6,6 +7,11 @@ import { CATEGORIES } from "@/types/product";
 import type { Product } from "@/types/product";
 import type { Review } from "@/types/review";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "קטלוג מוצרים",
+  description: "כל הפריטים של FashionStore — סינון לפי קטגוריה, מידה, צבע ומחיר.",
+};
 
 type Search = {
   category?: string;

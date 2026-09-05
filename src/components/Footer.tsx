@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Facebook, Instagram, Twitter } from "lucide-react";
+import { NewsletterForm } from "@/components/NewsletterForm";
 
 export function Footer() {
   return (
@@ -21,23 +22,29 @@ export function Footer() {
             <li><Link href="/products" className="hover:text-foreground">כל המוצרים</Link></li>
             <li><Link href="/products?category=Men" className="hover:text-foreground">גברים</Link></li>
             <li><Link href="/products?category=Women" className="hover:text-foreground">נשים</Link></li>
-            <li><Link href="/products?category=Kids" className="hover:text-foreground">ילדים</Link></li>
+            <li><Link href="/blog" className="hover:text-foreground">מגזין</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="mb-3 font-semibold">שירות</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>משלוחים</li>
-            <li>החזרות</li>
-            <li>צור קשר</li>
-            <li>שאלות נפוצות</li>
+            <li><Link href="/about" className="hover:text-foreground">אודות</Link></li>
+            <li><Link href="/contact" className="hover:text-foreground">צור קשר</Link></li>
+            <li><Link href="/faq" className="hover:text-foreground">שאלות נפוצות</Link></li>
+            <li><Link href="/shipping" className="hover:text-foreground">משלוחים והחזרות</Link></li>
+            <li><Link href="/terms" className="hover:text-foreground">תנאי שימוש</Link></li>
+            <li><Link href="/privacy" className="hover:text-foreground">מדיניות פרטיות</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="mb-3 font-semibold">עקבו אחרינו</h4>
-          <div className="flex gap-3">
+          <h4 className="mb-3 font-semibold">ניוזלטר</h4>
+          <p className="mb-3 text-sm text-muted-foreground">
+            מבצעים, קולקציות חדשות וטיפים. בלי ספאם.
+          </p>
+          <NewsletterForm />
+          <div className="mt-4 flex gap-3">
             <a href="#" aria-label="Instagram" className="rounded-full border p-2 hover:bg-accent">
               <Instagram className="h-4 w-4" />
             </a>

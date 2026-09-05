@@ -3,9 +3,11 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkoutSchema } from "@/lib/validators";
+import { computeCouponDiscount, type Coupon } from "@/lib/coupons";
 
 const orderSchema = checkoutSchema.extend({
   total: z.coerce.number().min(0),
+  coupon_code: z.string().optional().nullable(),
   items: z
     .array(
       z.object({
@@ -40,6 +42,33 @@ export async function POST(request: Request) {
   const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
   const db = hasServiceKey ? createAdminClient() : supabase;
 
+  let discount = 0;
+  let couponCode: string | null = null;
+  if (parsed.data.coupon_code) {
+    const { data: coupon } = await db
+      .from("coupons")
+      .select("*")
+      .eq("code", parsed.data.coupon_code.trim().toUpperCase())
+      .maybeSingle();
+    if (coupon) {
+      const subtotal = parsed.data.items.reduce(
+        (s, i) => s + i.price * i.quantity,
+        0,
+      );
+      try {
+        const applied = computeCouponDiscount(coupon as Coupon, subtotal);
+        discount = applied.discount;
+        couponCode = applied.code;
+        await db
+          .from("coupons")
+          .update({ used_count: (coupon.used_count ?? 0) + 1 })
+          .eq("id", coupon.id);
+      } catch {
+        /* קופון לא תקף — ממשיכים בלי הנחה */
+      }
+    }
+  }
+
   const { data: order, error: orderErr } = await db
     .from("orders")
     .insert({
@@ -48,9 +77,11 @@ export async function POST(request: Request) {
       email: parsed.data.email,
       phone: parsed.data.phone,
       address: parsed.data.address,
-      total: parsed.data.total,
+      total: Math.max(0, parsed.data.total),
       payment_method: parsed.data.payment_method,
       status: "pending",
+      coupon_code: couponCode,
+      discount,
     })
     .select()
     .single();
@@ -76,6 +107,11 @@ export async function POST(request: Request) {
   if (itemsErr) {
     return NextResponse.json({ error: itemsErr.message }, { status: 500 });
   }
+
+  await db
+    .from("abandoned_carts")
+    .update({ recovered: true })
+    .eq("email", parsed.data.email.toLowerCase());
 
   // שליחת מייל אישור הזמנה - non-blocking, לא נכשלים אם המייל נכשל
   try {

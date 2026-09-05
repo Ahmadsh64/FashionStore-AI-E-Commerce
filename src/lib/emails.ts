@@ -171,3 +171,92 @@ export async function sendOrderStatusEmail(params: {
     return { ok: false, error: err };
   }
 }
+
+function wrap(title: string, body: string) {
+  return `<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<body style="margin:0;padding:0;background:#f6f7f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#111">
+  <div style="max-width:600px;margin:24px auto;background:#fff;border-radius:12px;overflow:hidden">
+    <div style="background:#111;color:#fff;padding:24px 32px">
+      <div style="font-size:14px;opacity:.8">FashionStore</div>
+      <div style="font-size:20px;font-weight:700;margin-top:4px">${title}</div>
+    </div>
+    <div style="padding:32px">${body}</div>
+  </div>
+</body>
+</html>`;
+}
+
+export async function sendAbandonedCartEmail(params: {
+  to: string;
+  customerName: string;
+  items: { name: string; quantity: number; price: number }[];
+  total: number;
+  checkoutUrl: string;
+}) {
+  const resend = getResend();
+  if (!resend) return { skipped: true };
+  const list = params.items
+    .map((i) => `<li>${i.name} × ${i.quantity} — ${currency(i.price * i.quantity)}</li>`)
+    .join("");
+  const html = wrap(
+    "שכחת משהו בסל?",
+    `<p>היי ${params.customerName || ""},</p>
+     <p>הפריטים האלה מחכים לך:</p>
+     <ul>${list}</ul>
+     <p><strong>סה"כ: ${currency(params.total)}</strong></p>
+     <p><a href="${params.checkoutUrl}" style="display:inline-block;background:#111;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">חזרה לסל</a></p>`,
+  );
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [params.to],
+    subject: "הסל שלך מחכה לך ב-FashionStore",
+    html,
+  });
+  return { ok: true };
+}
+
+export async function sendWinbackEmail(params: {
+  to: string;
+  customerName: string;
+  shopUrl: string;
+  coupon: string;
+}) {
+  const resend = getResend();
+  if (!resend) return { skipped: true };
+  const html = wrap(
+    "התגעגענו אלייך",
+    `<p>היי ${params.customerName || ""},</p>
+     <p>עבר קצת זמן מאז ההזמנה האחרונה. הנה 10% הנחה עם הקוד <strong>${params.coupon}</strong>.</p>
+     <p><a href="${params.shopUrl}" style="display:inline-block;background:#111;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">לקולקציה החדשה</a></p>`,
+  );
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [params.to],
+    subject: `10% הנחה מחכה לך — ${params.coupon}`,
+    html,
+  });
+  return { ok: true };
+}
+
+export async function sendContactNotification(params: {
+  name: string;
+  email: string;
+  message: string;
+}) {
+  const resend = getResend();
+  if (!resend) return { skipped: true };
+  const to = process.env.CONTACT_TO_EMAIL || process.env.RESEND_FROM_EMAIL;
+  if (!to) return { skipped: true };
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [to.replace(/.*<|>/g, "").includes("@") ? to : params.email],
+    replyTo: params.email,
+    subject: `פנייה חדשה מ-${params.name}`,
+    html: wrap(
+      "פנייה מאתר FashionStore",
+      `<p><strong>${params.name}</strong> (${params.email})</p><p>${params.message.replace(/</g, "&lt;")}</p>`,
+    ),
+  });
+  return { ok: true };
+}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Package, Truck, RotateCcw } from "lucide-react";
@@ -13,6 +14,7 @@ import { RelatedProducts } from "@/components/RelatedProducts";
 import { RecentlyViewed, TrackRecentlyViewed } from "@/components/RecentlyViewed";
 import { StarRating } from "@/components/StarRating";
 import { AddToCartButton } from "./AddToCartButton";
+import { getSiteUrl } from "@/lib/site";
 
 async function getProduct(id: string): Promise<Product | null> {
   try {
@@ -67,6 +69,26 @@ async function getRecentCandidates(): Promise<Product[]> {
   }
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+  if (!product) return { title: "מוצר" };
+  return {
+    title: product.name,
+    description: product.description || `${product.name} — ${product.category}`,
+    openGraph: {
+      title: product.name,
+      description: product.description || product.category,
+      images: product.image_url ? [{ url: product.image_url }] : undefined,
+      type: "website",
+    },
+  };
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -83,8 +105,40 @@ export default async function ProductDetailPage({
   ]);
   const summary = summarizeReviews(reviews);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image_url || undefined,
+    brand: product.brand || "FashionStore",
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "ILS",
+      price: Number(product.price),
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      url: `${getSiteUrl()}/product/${product.id}`,
+    },
+    ...(summary.count
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: summary.average,
+            reviewCount: summary.count,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="container py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <TrackRecentlyViewed productId={product.id} />
       <Link
         href="/products"

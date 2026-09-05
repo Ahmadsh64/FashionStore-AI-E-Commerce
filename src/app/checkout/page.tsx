@@ -17,6 +17,9 @@ import {
   type PaymentMethod,
 } from "@/lib/validators";
 import { PaymentMethods, type CreditCardData } from "@/components/PaymentMethods";
+import { CouponField } from "@/components/CouponField";
+import { setTrackedEmail } from "@/components/CartAbandonTracker";
+import type { CouponResult } from "@/lib/coupons";
 
 const COD_FEE = 15;
 
@@ -41,6 +44,7 @@ export default function CheckoutPage() {
     cvv: "",
   });
   const [loading, setLoading] = useState(false);
+  const [coupon, setCoupon] = useState<CouponResult | null>(null);
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -51,7 +55,8 @@ export default function CheckoutPage() {
 
   const shipping = total >= 300 ? 0 : 30;
   const codFee = payment === "cash_on_delivery" ? COD_FEE : 0;
-  const grand = total + shipping + codFee;
+  const discount = coupon?.discount ?? 0;
+  const grand = Math.max(0, total + shipping + codFee - discount);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +95,7 @@ export default function CheckoutPage() {
             })),
             total: grand,
             shipping,
+            coupon_code: coupon?.code ?? null,
           }),
         });
         const data = await res.json();
@@ -115,6 +121,7 @@ export default function CheckoutPage() {
             color: i.color ?? null,
           })),
           total: grand,
+          coupon_code: coupon?.code ?? null,
         }),
       });
       const data = await res.json();
@@ -155,7 +162,10 @@ export default function CheckoutPage() {
                   id="email"
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, email: e.target.value });
+                    setTrackedEmail(e.target.value);
+                  }}
                   autoComplete="email"
                   required
                 />
@@ -224,6 +234,19 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">עמלת COD</span>
                 <span>{formatPrice(codFee)}</span>
+              </div>
+            )}
+            <div className="pt-2">
+              <CouponField
+                subtotal={total}
+                applied={coupon}
+                onApply={setCoupon}
+              />
+            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <span>הנחה</span>
+                <span>−{formatPrice(discount)}</span>
               </div>
             )}
             <div className="flex justify-between border-t pt-2 text-base font-semibold">

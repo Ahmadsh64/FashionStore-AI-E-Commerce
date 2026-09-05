@@ -105,7 +105,7 @@ git push
 בדוק שה-`SUPABASE_SERVICE_ROLE_KEY` מוגדר נכון ב-Vercel (משתמשים בו לעקוף RLS עבור אורחים).
 
 ### 500 Internal Server Error על `/profiles`
-לא הרצת את `supabase/fix-rls-recursion.sql`. הרץ אותו ב-Supabase SQL Editor.
+הרץ מחדש את `supabase/schema.sql` ב-Supabase SQL Editor (כולל תיקון RLS).
 
 ---
 
