@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { logoutAndFlush } from "@/lib/account-store";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -58,8 +59,7 @@ export function Navbar() {
   }, [pathname]);
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await logoutAndFlush();
     router.push("/");
     router.refresh();
   };

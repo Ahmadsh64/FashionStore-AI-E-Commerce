@@ -174,6 +174,15 @@ create table if not exists public.marketing_sends (
   sent_at    timestamptz not null default now()
 );
 
+-- סל / מועדפים / נצפו לאחרונה — לכל חשבון בנפרד
+create table if not exists public.user_prefs (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  cart       jsonb not null default '[]'::jsonb,
+  wishlist   jsonb not null default '[]'::jsonb,
+  recent     jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
 -- ============================================
 -- 4) אינדקסים
 -- ============================================
@@ -249,6 +258,7 @@ alter table public.posts             enable row level security;
 alter table public.contact_messages  enable row level security;
 alter table public.abandoned_carts   enable row level security;
 alter table public.marketing_sends   enable row level security;
+alter table public.user_prefs        enable row level security;
 
 -- Products
 drop policy if exists "products_select_all" on public.products;
@@ -357,6 +367,21 @@ create policy "abandoned_admin" on public.abandoned_carts
 drop policy if exists "marketing_admin" on public.marketing_sends;
 create policy "marketing_admin" on public.marketing_sends
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- העדפות חשבון: כל משתמש רואה ומעדכן רק את השורה שלו
+drop policy if exists "user_prefs_select_own" on public.user_prefs;
+create policy "user_prefs_select_own" on public.user_prefs
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "user_prefs_insert_own" on public.user_prefs;
+create policy "user_prefs_insert_own" on public.user_prefs
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "user_prefs_update_own" on public.user_prefs;
+create policy "user_prefs_update_own" on public.user_prefs
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+grant select, insert, update on public.user_prefs to authenticated;
 
 -- Storage
 drop policy if exists "products_bucket_read" on storage.objects;

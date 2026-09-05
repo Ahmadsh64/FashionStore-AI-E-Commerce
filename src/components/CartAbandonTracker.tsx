@@ -11,6 +11,11 @@ export function setTrackedEmail(email: string) {
   if (email.includes("@")) localStorage.setItem(EMAIL_KEY, email);
 }
 
+export function clearTrackedEmail() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(EMAIL_KEY);
+}
+
 export function CartAbandonTracker() {
   const items = useCart((s) => s.items);
   const total = useCart((s) => s.getTotal());
@@ -21,6 +26,11 @@ export function CartAbandonTracker() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) setTrackedEmail(data.user.email);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user.email) setTrackedEmail(session.user.email);
+      else clearTrackedEmail();
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

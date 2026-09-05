@@ -24,6 +24,7 @@ type CartState = {
   addProduct: (item: AddInput, quantity?: number) => void;
   removeProduct: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
+  replaceItems: (items: CartItem[]) => void;
   clearCart: () => void;
   getTotal: () => number;
   getCount: () => number;
@@ -70,6 +71,8 @@ export const useCart = create<CartState>()(
           ),
         });
       },
+
+      replaceItems: (items) => set({ items }),
 
       clearCart: () => set({ items: [] }),
 

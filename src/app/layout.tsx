@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { BottomNav } from "@/components/BottomNav";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CartAbandonTracker } from "@/components/CartAbandonTracker";
+import { AccountStoreSync } from "@/components/AccountStoreSync";
 import { Analytics } from "@/components/Analytics";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BottomNav />
           <ChatWidget />
           <WhatsAppButton />
+          <AccountStoreSync />
           <CartAbandonTracker />
           <Analytics />
           <Toaster position="top-center" richColors />
