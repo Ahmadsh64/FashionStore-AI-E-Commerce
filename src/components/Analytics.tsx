@@ -1,6 +1,6 @@
 "use client";
 
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import Script from "next/script";
 
 export function Analytics() {
