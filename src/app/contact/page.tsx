@@ -32,12 +32,19 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="container max-w-xl py-12">
-      <h1 className="text-3xl font-bold">צור קשר</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        שאלה על הזמנה, מידה או שיתוף פעולה? כתבו לנו.
-      </p>
-      <form onSubmit={submit} className="mt-6 space-y-4">
+    <div className="container grid gap-12 py-16 md:grid-cols-2">
+      <div>
+        <p className="kicker">שירות לקוחות</p>
+        <h1 className="page-title mt-2">נשמח לשמוע</h1>
+        <p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground">
+          שאלה על מידה, הזמנה או שיתוף פעולה? כתבו לנו ונחזור בהקדם. אפשר גם בוואטסאפ מהכפתור באתר.
+        </p>
+        <div className="mt-8 space-y-4 text-sm">
+          <p><span className="text-muted-foreground">שעות מענה:</span> א׳–ה׳ 9:00–18:00</p>
+          <p><span className="text-muted-foreground">משלוחים:</span> 2–5 ימי עסקים בכל הארץ</p>
+        </div>
+      </div>
+      <form onSubmit={submit} className="space-y-4">
         <div>
           <Label htmlFor="name">שם</Label>
           <Input
@@ -67,8 +74,8 @@ export default function ContactPage() {
             required
           />
         </div>
-        <Button type="submit" disabled={loading}>
-          {loading ? "שולח..." : "שלח"}
+        <Button type="submit" disabled={loading} size="lg" className="w-full md:w-auto">
+          {loading ? "שולח..." : "שליחת הודעה"}
         </Button>
       </form>
     </div>

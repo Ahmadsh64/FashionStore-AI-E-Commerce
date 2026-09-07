@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
@@ -13,7 +13,16 @@ import { AccountStoreSync } from "@/components/AccountStoreSync";
 import { Analytics } from "@/components/Analytics";
 import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const heebo = Heebo({
+  subsets: ["latin", "hebrew"],
+  variable: "--font-heebo",
+});
+
+const display = Frank_Ruhl_Libre({
+  subsets: ["latin", "hebrew"],
+  weight: ["400", "500", "700"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -50,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
+      <body className={`${heebo.variable} ${display.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
           <Navbar />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>

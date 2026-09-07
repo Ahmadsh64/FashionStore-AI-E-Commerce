@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="container max-w-3xl py-12">
-      <h1 className="text-3xl font-bold">תנאי שימוש</h1>
+      <h1 className="page-title">תנאי שימוש</h1>
       <div className="mt-6 space-y-4 text-sm leading-7 text-muted-foreground">
         <p>השימוש באתר FashionStore מהווה הסכמה לתנאים אלה.</p>
         <p>

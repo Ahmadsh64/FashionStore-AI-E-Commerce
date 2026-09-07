@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="container max-w-3xl py-12">
-      <h1 className="text-3xl font-bold">מדיניות פרטיות</h1>
+      <h1 className="page-title">מדיניות פרטיות</h1>
       <div className="mt-6 space-y-4 text-sm leading-7 text-muted-foreground">
         <p>
           אנחנו אוספים שם, אימייל, טלפון וכתובת לצורך ביצוע הזמנה, משלוח ושירות לקוחות.

@@ -30,13 +30,16 @@ const FAQ = [
 
 export default function FaqPage() {
   return (
-    <div className="container max-w-3xl py-12">
-      <h1 className="text-3xl font-bold">שאלות נפוצות</h1>
-      <div className="mt-8 space-y-3">
+    <div className="container max-w-3xl py-16">
+      <p className="kicker">שירות</p>
+      <h1 className="page-title mt-2">שאלות נפוצות</h1>
+      <div className="mt-10 divide-y border-y">
         {FAQ.map((item) => (
-          <details key={item.q} className="rounded-lg border bg-card p-4">
-            <summary className="cursor-pointer font-medium">{item.q}</summary>
-            <p className="mt-2 text-sm text-muted-foreground">{item.a}</p>
+          <details key={item.q} className="group py-5">
+            <summary className="cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">
+              {item.q}
+            </summary>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.a}</p>
           </details>
         ))}
       </div>

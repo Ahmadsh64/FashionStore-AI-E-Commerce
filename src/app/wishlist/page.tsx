@@ -42,9 +42,9 @@ export default function WishlistPage() {
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold">המועדפים שלי</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        שמור פריטים שאהבת וחזור אליהם בקלות.
+      <h1 className="page-title">מועדפים</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        הפריטים ששמרת — רק בחשבון הזה.
       </p>
 
       {!mounted || loading ? (
@@ -52,7 +52,7 @@ export default function WishlistPage() {
           <ProductGridSkeleton count={4} />
         </div>
       ) : products.length === 0 ? (
-        <div className="mt-10 rounded-lg border-2 border-dashed p-12 text-center">
+        <div className="mt-10 border border-dashed p-12 text-center">
           <Heart className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
           <p className="text-muted-foreground">עדיין אין מוצרים במועדפים.</p>
           <Link href="/products">
@@ -60,7 +60,7 @@ export default function WishlistPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-8 grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

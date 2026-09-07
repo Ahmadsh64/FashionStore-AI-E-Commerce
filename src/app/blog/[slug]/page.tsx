@@ -34,10 +34,10 @@ export default async function BlogPostPage({ params }: Props) {
       <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
         ← חזרה למגזין
       </Link>
-      <h1 className="mt-4 text-3xl font-bold">{post.title}</h1>
+      <h1 className="font-display mt-4 text-4xl font-medium leading-tight md:text-5xl">{post.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{formatDate(post.created_at)}</p>
       {post.image_url && (
-        <div className="relative mt-6 aspect-[16/8] overflow-hidden rounded-lg bg-muted">
+        <div className="relative mt-8 aspect-[16/8] overflow-hidden bg-muted">
           <Image src={post.image_url} alt={post.title} fill className="object-cover" sizes="800px" />
         </div>
       )}

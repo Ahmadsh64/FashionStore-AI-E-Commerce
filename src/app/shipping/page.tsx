@@ -7,9 +7,10 @@ export const metadata: Metadata = {
 
 export default function ShippingPage() {
   return (
-    <div className="container max-w-3xl py-12">
-      <h1 className="text-3xl font-bold">משלוחים והחזרות</h1>
-      <div className="mt-6 space-y-4 leading-7 text-muted-foreground">
+    <div className="container max-w-3xl py-16">
+      <p className="kicker">שירות</p>
+      <h1 className="page-title mt-2">משלוחים והחזרות</h1>
+      <div className="mt-8 space-y-4 text-[15px] leading-7 text-muted-foreground">
         <p>משלוח רגיל: ₪30. משלוח חינם בהזמנה מעל ₪300.</p>
         <p>זמן אספקה משוער: 2–5 ימי עסקים בתוך ישראל.</p>
         <p>

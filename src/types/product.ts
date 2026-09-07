@@ -18,6 +18,18 @@ export type ProductInput = Omit<Product, "id" | "created_at">;
 export const CATEGORIES = ["Men", "Women", "Kids", "Shoes", "Accessories"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+export const CATEGORY_LABELS: Record<string, string> = {
+  Men: "גברים",
+  Women: "נשים",
+  Kids: "ילדים",
+  Shoes: "נעליים",
+  Accessories: "אקססוריז",
+};
+
+export function categoryLabel(category: string) {
+  return CATEGORY_LABELS[category] ?? category;
+}
+
 /**
  * Returns all product images: image_url first, then additional gallery images.
  * Filters out empty strings.

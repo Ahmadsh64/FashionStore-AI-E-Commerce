@@ -50,7 +50,7 @@ export default async function AccountPage() {
   return (
     <div className="container py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">החשבון שלי</h1>
+        <h1 className="page-title">החשבון שלי</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           נהל את הפרטים שלך וצפה בהזמנות שביצעת.
         </p>

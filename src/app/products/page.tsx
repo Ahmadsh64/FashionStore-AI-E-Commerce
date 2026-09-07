@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters, type FilterOptions } from "@/components/ProductFilters";
-import { CATEGORIES } from "@/types/product";
+import { CATEGORIES, categoryLabel } from "@/types/product";
 import type { Product } from "@/types/product";
 import type { Review } from "@/types/review";
 import { cn } from "@/lib/utils";
@@ -119,21 +119,21 @@ export default async function ProductsPage({
   const active = params.category ?? "";
 
   return (
-    <div className="container py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">
+    <div className="container py-12">
+      <div className="mb-10">
+        <h1 className="page-title">
           {params.q
-            ? `תוצאות חיפוש עבור "${params.q}"`
+            ? `חיפוש: “${params.q}”`
             : active
-              ? active
-              : "כל המוצרים"}
+              ? categoryLabel(active)
+              : "הקולקציה"}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {products.length} מוצרים
+        <p className="mt-2 text-sm text-muted-foreground">
+          {products.length} פריטים
           {params.q && (
             <>
               {" · "}
-              <Link href="/products" className="underline hover:text-foreground">
+              <Link href="/products" className="underline underline-offset-4 hover:text-foreground">
                 נקה חיפוש
               </Link>
             </>
@@ -160,7 +160,7 @@ export default async function ProductsPage({
               active === c && "bg-primary text-primary-foreground border-primary",
             )}
           >
-            {c}
+            {categoryLabel(c)}
           </Link>
         ))}
       </div>
@@ -169,11 +169,11 @@ export default async function ProductsPage({
         <ProductFilters options={options} />
 
         {products.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-8 text-center text-muted-foreground">
-            לא נמצאו מוצרים תואמים.
+          <div className="border border-dashed p-12 text-center text-muted-foreground">
+            לא נמצאו פריטים תואמים.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-x-4 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

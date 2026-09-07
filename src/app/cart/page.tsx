@@ -25,7 +25,7 @@ export default function CartPage() {
         <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
           <ShoppingBag className="h-10 w-10 text-muted-foreground" />
         </div>
-        <h1 className="text-2xl font-bold">הסל שלך ריק</h1>
+        <h1 className="font-display text-4xl">הסל ריק</h1>
         <p className="mt-2 text-muted-foreground">
           עדיין לא הוספת שום דבר. בוא נתקן את זה!
         </p>
@@ -40,8 +40,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="mb-6 text-3xl font-bold">הסל שלך</h1>
+    <div className="container py-12">
+      <h1 className="page-title mb-8">הסל</h1>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
@@ -50,8 +50,8 @@ export default function CartPage() {
           ))}
         </div>
 
-        <div className="h-fit rounded-lg border bg-card p-6">
-          <h2 className="text-lg font-semibold">סיכום הזמנה</h2>
+        <div className="h-fit border bg-card p-8">
+          <h2 className="font-display text-2xl">סיכום</h2>
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">סכום ביניים</span>

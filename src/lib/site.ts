@@ -25,4 +25,4 @@ export function getSiteUrl() {
 
 export const SITE_NAME = "FashionStore";
 export const SITE_DESCRIPTION =
-  "חנות אונליין לאופנה עדכנית: גברים, נשים, ילדים ונעליים. משלוח לכל הארץ.";
+  "בוטיק אופנה ישראלי: קולקציות נבחרות לגברים, נשים וילדים. בד איכותי, גזרות מדויקות ומשלוח לכל הארץ.";

@@ -1,187 +1,300 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Sparkles, Truck, ShieldCheck, Headphones } from "lucide-react";
+import { ArrowLeft, Truck, RotateCcw, Sparkles, Shirt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { NewsletterForm } from "@/components/NewsletterForm";
 import { createClient } from "@/lib/supabase/server";
+import { getPosts } from "@/lib/blog";
+import { catalogLookImages, firstProductImage, productImage } from "@/lib/catalog";
 import type { Product } from "@/types/product";
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(24);
+    if (error) {
+      console.error("[home] products:", error.message);
+      return [];
+    }
     return (data as Product[]) ?? [];
-  } catch {
+  } catch (err) {
+    console.error("[home] supabase:", err);
     return [];
   }
 }
 
-const CATEGORIES = [
-  {
-    name: "Men",
-    label: "גברים",
-    image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?w=800",
-  },
+const CATEGORY_TILES = [
   {
     name: "Women",
     label: "נשים",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800",
+    caption: "שמלות, עליוניות ובסיס לארון",
+    className: "md:col-span-2 md:row-span-2 min-h-[420px]",
   },
   {
-    name: "Kids",
-    label: "ילדים",
-    image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800",
+    name: "Men",
+    label: "גברים",
+    caption: "חולצות, ג'קטס וגזרות נקיות",
+    className: "min-h-[200px]",
   },
   {
     name: "Shoes",
     label: "נעליים",
-    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800",
+    caption: "סניקרס ועקב ליום ולערב",
+    className: "min-h-[200px]",
   },
 ];
 
 export default async function HomePage() {
-  const products = await getFeaturedProducts();
+  const [products, posts] = await Promise.all([getFeaturedProducts(), getPosts()]);
+  const hero = firstProductImage(products);
+  const story = firstProductImage(products, "Women") ?? hero;
+  const looks = catalogLookImages(products, 6);
 
   return (
     <div>
-      <section className="relative overflow-hidden">
-        <div className="container grid items-center gap-8 py-16 md:grid-cols-2 md:py-24">
-          <div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <Sparkles className="h-3 w-3" />
-              קולקציית 2026
-            </span>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-6xl">
-              אופנה שגורמת לך <br />
-              <span className="text-primary">להרגיש מדהים.</span>
-            </h1>
-            <p className="mt-4 max-w-md text-muted-foreground">
-              גלה קולקציה מובחרת של פריטים חדשים לגברים, נשים וילדים. איכות
-              מעולה, סטייל עכשווי, ומחירים שווים.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/products">
-                <Button size="lg">
-                  קנה עכשיו
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/products?category=Women">
-                <Button size="lg" variant="outline">
-                  קולקציית נשים
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted md:aspect-[4/5]">
-            <Image
-              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200"
-              alt="Hero"
-              fill
-              priority
-              className="object-cover"
-              sizes="(min-width: 768px) 50vw, 100vw"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y bg-muted/30">
-        <div className="container grid gap-6 py-8 md:grid-cols-4">
-          {[
-            { icon: Truck, title: "משלוח חינם", desc: "בהזמנה מעל ₪300" },
-            { icon: ShieldCheck, title: "החזרות קלות", desc: "עד 30 יום" },
-            { icon: Headphones, title: "תמיכה 24/7", desc: "כאן בשבילך" },
-            { icon: Sparkles, title: "איכות מובטחת", desc: "אחריות מלאה" },
-          ].map((f) => (
-            <div key={f.title} className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <f.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold">{f.title}</div>
-                <div className="text-xs text-muted-foreground">{f.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="container py-16">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <h2 className="text-3xl font-bold">קטגוריות</h2>
-            <p className="mt-1 text-muted-foreground">מצא בדיוק את מה שאתה מחפש</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.name}
-              href={`/products?category=${c.name}`}
-              className="group relative aspect-[4/5] overflow-hidden rounded-xl"
-            >
-              <Image
-                src={c.image}
-                alt={c.label}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                sizes="(min-width: 1024px) 25vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-              <div className="absolute bottom-4 right-4 text-white">
-                <div className="text-xl font-bold">{c.label}</div>
-                <div className="text-xs opacity-80">לצפייה בקולקציה →</div>
-              </div>
+      <section className="relative min-h-[78vh] overflow-hidden bg-[#1c1612] md:min-h-[88vh]">
+        {productImage(hero) && (
+          <Image
+            src={productImage(hero)}
+            alt={hero?.name ?? "קולקציה"}
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/15" />
+        <div className="container relative flex min-h-[78vh] flex-col justify-end pb-16 pt-28 text-white md:min-h-[88vh] md:pb-24">
+          <p className="kicker text-white/80">קיץ 2026 · נבחר ביד</p>
+          <h1 className="font-display mt-4 max-w-2xl text-5xl font-medium leading-[1.1] md:text-7xl">
+            בגדים שמרגישים
+            <br />
+            כמו הבית. נראים כמו את.
+          </h1>
+          <p className="mt-5 max-w-md text-sm leading-6 text-white/80 md:text-base">
+            קולקציה מצומצמת לגברים, נשים וילדים. בד נושם, גזרה מדויקת, ומשלוח עד הדלת.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/products">
+              <Button size="lg" className="bg-white text-[#1c1612] hover:bg-white/90">
+                לקולקציה
+              </Button>
             </Link>
+            <Link href="/products?category=Women">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/50 text-white hover:bg-white hover:text-[#1c1612]"
+              >
+                נשים
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y bg-background">
+        <div className="container grid gap-8 py-8 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { icon: Truck, title: "משלוח חינם", desc: "בהזמנה מעל ₪300 לכל הארץ" },
+            { icon: RotateCcw, title: "החזרה קלה", desc: "30 יום, בלי אותיות קטנות" },
+            { icon: Shirt, title: "גזרות מדויקות", desc: "מידות ברורות ובד איכותי" },
+            { icon: Sparkles, title: "נבחר בקפידה", desc: "לא עודף מלאי — רק מה ששווה" },
+          ].map((f) => (
+            <div key={f.title} className="flex items-start gap-3">
+              <f.icon className="mt-0.5 h-5 w-5 text-gold" />
+              <div>
+                <div className="text-sm font-medium">{f.title}</div>
+                <div className="mt-0.5 text-xs leading-5 text-muted-foreground">{f.desc}</div>
+              </div>
+            </div>
           ))}
+        </div>
+      </section>
+
+      <section className="container py-20">
+        <div className="mb-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="kicker">עיינו לפי מחלקה</p>
+            <h2 className="section-title mt-2">הקולקציות</h2>
+          </div>
+          <Link href="/products" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">
+            הכל <ArrowLeft className="mr-1 h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3 md:grid-rows-2">
+          {CATEGORY_TILES.map((c) => {
+            const cover = firstProductImage(products, c.name);
+            return (
+              <Link
+                key={c.name}
+                href={`/products?category=${c.name}`}
+                className={`group relative overflow-hidden bg-[#1c1612] ${c.className}`}
+              >
+                {productImage(cover) && (
+                  <Image
+                    src={productImage(cover)}
+                    alt={c.label}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+                <div className="absolute bottom-5 right-5 text-white">
+                  <div className="font-display text-3xl">{c.label}</div>
+                  <p className="mt-1 text-xs text-white/75">{c.caption}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
       {products.length > 0 && (
-        <section className="container py-16">
-          <div className="mb-8 flex items-end justify-between">
+        <section className="container pb-20">
+          <div className="mb-10 flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold">חדש בחנות</h2>
-              <p className="mt-1 text-muted-foreground">הפריטים הכי חדשים שהגיעו אלינו</p>
+              <p className="kicker">זה עתה הגיע</p>
+              <h2 className="section-title mt-2">חדש בחנות</h2>
             </div>
             <Link href="/products">
-              <Button variant="ghost">
+              <Button variant="ghost" className="text-muted-foreground">
                 לכל המוצרים
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {products.slice(0, 4).map((p) => (
+          <div className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {products.slice(0, 8).map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
       )}
 
+      <section className="bg-[#1c1612] text-[#f4efe8]">
+        <div className="container grid items-center gap-10 py-20 md:grid-cols-2 md:gap-16">
+          <div className="relative aspect-[4/5] overflow-hidden bg-black/30">
+            {productImage(story) && (
+              <Image
+                src={productImage(story)}
+                alt={story?.name ?? "הקולקציה"}
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 50vw, 100vw"
+              />
+            )}
+          </div>
+          <div>
+            <p className="kicker text-white/50">הסיפור שלנו</p>
+            <h2 className="font-display mt-3 text-4xl font-medium md:text-5xl">
+              פחות פריטים.
+              <br />
+              יותר נוכחות.
+            </h2>
+            <p className="mt-5 max-w-md text-sm leading-7 text-white/65">
+              FashionStore נולדה מהרצון לקנות בגדים טובים בלי ללכת לאיבוד בקניון.
+              אנחנו בוחרים מעט, בודקים בד וגזרה, ומשלחים מכל הזמנה מהמחסן בישראל.
+            </p>
+            <Link href="/about" className="mt-8 inline-block">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/40 text-white hover:bg-white hover:text-[#1c1612]"
+              >
+                אודות החנות
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {posts.length > 0 && (
+        <section className="container py-20">
+          <div className="mb-10 flex items-end justify-between">
+            <div>
+              <p className="kicker">השראה</p>
+              <h2 className="section-title mt-2">מהמגזין</h2>
+            </div>
+            <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
+              כל המאמרים
+            </Link>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {posts.slice(0, 3).map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
+                <div className="relative mb-4 aspect-[16/10] overflow-hidden bg-muted">
+                  {post.image_url ? (
+                    <Image
+                      src={post.image_url}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                    />
+                  ) : null}
+                </div>
+                <h3 className="font-display text-xl leading-snug group-hover:text-gold">
+                  {post.title}
+                </h3>
+                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {looks.length > 0 && (
+        <section>
+          <div className="grid grid-cols-2 md:grid-cols-6">
+            {looks.map((src, i) => (
+              <div key={`${src}-${i}`} className="relative aspect-square overflow-hidden bg-muted">
+                <Image
+                  src={src}
+                  alt={`פריט ${i + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-700 hover:scale-110"
+                  sizes="16vw"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="border-y bg-secondary/50">
+        <div className="container max-w-xl py-16 text-center">
+          <p className="kicker">10% להזמנה ראשונה</p>
+          <h2 className="section-title mt-3">הצטרפו לרשימה</h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            קוד WELCOME10 מחכה בקופה. נעדכן רק כשיש קולקציה חדשה או מבצע אמיתי.
+          </p>
+          <div className="mx-auto mt-6 max-w-md">
+            <NewsletterForm />
+          </div>
+        </div>
+      </section>
+
       {products.length > 0 && (
-        <section className="container pb-16">
+        <section className="container py-16">
           <RecentlyViewed products={products} />
         </section>
       )}
 
       {products.length === 0 && (
         <section className="container py-16">
-          <div className="rounded-lg border-2 border-dashed p-8 text-center">
-            <h3 className="text-lg font-semibold">עדיין אין מוצרים 🛍️</h3>
+          <div className="border border-dashed p-10 text-center">
+            <h3 className="font-display text-2xl">אין מוצרים בקטלוג עדיין</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              נראה שהחנות עוד לא מחוברת ל-Supabase או שהטבלה ריקה.
-              <br />
-              עקוב אחרי הוראות ה-README כדי להריץ את סכמת ה-DB.
+              הוסיפו מוצרים מ־Admin, עם תמונה מ־Supabase Storage.
             </p>
           </div>
         </section>

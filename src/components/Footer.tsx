@@ -1,67 +1,64 @@
 import Link from "next/link";
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="container grid gap-8 py-12 md:grid-cols-4">
-        <div>
-          <div className="flex items-center gap-2 text-lg font-bold">
-            <span className="rounded-md bg-primary px-2 py-1 text-primary-foreground">FS</span>
-            FashionStore
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            אופנה מודרנית באיכות הכי גבוהה. משלוח לכל הארץ.
+    <footer className="mt-auto border-t bg-[#1c1612] text-[#f4efe8] dark:bg-black">
+      <div className="container grid gap-10 py-16 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <Link href="/" className="font-display text-2xl text-[#f4efe8]">
+            Fashion <span className="text-[10px] tracking-[0.32em] text-white/50">STORE</span>
+          </Link>
+          <p className="mt-4 max-w-xs text-sm leading-6 text-white/60">
+            בוטיק אופנה ישראלי. פריטים נבחרים, גזרות מדויקות, ומשלוח עד הבית לכל הארץ.
           </p>
-        </div>
-
-        <div>
-          <h4 className="mb-3 font-semibold">חנות</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link href="/products" className="hover:text-foreground">כל המוצרים</Link></li>
-            <li><Link href="/products?category=Men" className="hover:text-foreground">גברים</Link></li>
-            <li><Link href="/products?category=Women" className="hover:text-foreground">נשים</Link></li>
-            <li><Link href="/blog" className="hover:text-foreground">מגזין</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="mb-3 font-semibold">שירות</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link href="/about" className="hover:text-foreground">אודות</Link></li>
-            <li><Link href="/contact" className="hover:text-foreground">צור קשר</Link></li>
-            <li><Link href="/faq" className="hover:text-foreground">שאלות נפוצות</Link></li>
-            <li><Link href="/shipping" className="hover:text-foreground">משלוחים והחזרות</Link></li>
-            <li><Link href="/terms" className="hover:text-foreground">תנאי שימוש</Link></li>
-            <li><Link href="/privacy" className="hover:text-foreground">מדיניות פרטיות</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="mb-3 font-semibold">ניוזלטר</h4>
-          <p className="mb-3 text-sm text-muted-foreground">
-            מבצעים, קולקציות חדשות וטיפים. בלי ספאם.
-          </p>
-          <NewsletterForm />
-          <div className="mt-4 flex gap-3">
-            <a href="#" aria-label="Instagram" className="rounded-full border p-2 hover:bg-accent">
+          <div className="mt-6 flex gap-3">
+            <a href="#" aria-label="Instagram" className="border border-white/20 p-2 text-white/80 hover:bg-white hover:text-[#1c1612]">
               <Instagram className="h-4 w-4" />
             </a>
-            <a href="#" aria-label="Facebook" className="rounded-full border p-2 hover:bg-accent">
+            <a href="#" aria-label="Facebook" className="border border-white/20 p-2 text-white/80 hover:bg-white hover:text-[#1c1612]">
               <Facebook className="h-4 w-4" />
             </a>
-            <a href="#" aria-label="Twitter" className="rounded-full border p-2 hover:bg-accent">
-              <Twitter className="h-4 w-4" />
-            </a>
           </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <h4 className="kicker mb-4 text-white/50">חנות</h4>
+          <ul className="space-y-2.5 text-sm text-white/70">
+            <li><Link href="/products" className="hover:text-white">כל הקולקציה</Link></li>
+            <li><Link href="/products?category=Women" className="hover:text-white">נשים</Link></li>
+            <li><Link href="/products?category=Men" className="hover:text-white">גברים</Link></li>
+            <li><Link href="/products?category=Kids" className="hover:text-white">ילדים</Link></li>
+            <li><Link href="/blog" className="hover:text-white">מגזין</Link></li>
+          </ul>
+        </div>
+
+        <div className="md:col-span-3">
+          <h4 className="kicker mb-4 text-white/50">שירות לקוחות</h4>
+          <ul className="space-y-2.5 text-sm text-white/70">
+            <li><Link href="/about" className="hover:text-white">אודות</Link></li>
+            <li><Link href="/contact" className="hover:text-white">צור קשר</Link></li>
+            <li><Link href="/faq" className="hover:text-white">שאלות נפוצות</Link></li>
+            <li><Link href="/shipping" className="hover:text-white">משלוחים והחזרות</Link></li>
+            <li><Link href="/terms" className="hover:text-white">תנאי שימוש</Link></li>
+            <li><Link href="/privacy" className="hover:text-white">מדיניות פרטיות</Link></li>
+          </ul>
+        </div>
+
+        <div className="md:col-span-3">
+          <h4 className="kicker mb-4 text-white/50">ניוזלטר</h4>
+          <p className="mb-4 text-sm leading-6 text-white/60">
+            קולקציות חדשות, מבצעים מוקדמים והשראה לארון. בלי ספאם.
+          </p>
+          <NewsletterForm tone="onDark" />
         </div>
       </div>
 
-      <div className="border-t">
-        <div className="container flex flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground md:flex-row">
-          <p>© {new Date().getFullYear()} FashionStore. כל הזכויות שמורות.</p>
-          <p>נבנה עם Next.js 15 + Supabase</p>
+      <div className="border-t border-white/10">
+        <div className="container flex flex-col items-center justify-between gap-3 py-5 text-[11px] tracking-wide text-white/45 md:flex-row">
+          <p>© {new Date().getFullYear()} FashionStore · כל הזכויות שמורות</p>
+          <p>משלוח לכל הארץ · החזרות 30 יום · תשלום מאובטח</p>
         </div>
       </div>
     </footer>

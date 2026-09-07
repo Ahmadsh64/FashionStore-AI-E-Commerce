@@ -3,11 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Package, Truck, RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { type Product, getProductGallery } from "@/types/product";
+import { type Product, getProductGallery, categoryLabel } from "@/types/product";
 import type { Review } from "@/types/review";
 import { summarizeReviews } from "@/types/review";
 import { formatPrice } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ProductReviews } from "@/components/ProductReviews";
 import { RelatedProducts } from "@/components/RelatedProducts";
@@ -134,7 +133,7 @@ export default async function ProductDetailPage({
   };
 
   return (
-    <div className="container py-8">
+    <div className="container py-10 md:py-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -148,23 +147,23 @@ export default async function ProductDetailPage({
         חזרה לקטלוג
       </Link>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
         <ProductGallery images={getProductGallery(product)} alt={product.name} />
 
-        <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{product.category}</Badge>
-            {product.brand && <Badge variant="outline">{product.brand}</Badge>}
+        <div className="lg:sticky lg:top-28">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="kicker">{categoryLabel(product.category)}</span>
+            {product.brand && (
+              <span className="text-xs text-muted-foreground">· {product.brand}</span>
+            )}
           </div>
-          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <h1 className="font-display text-4xl font-medium leading-tight md:text-5xl">{product.name}</h1>
           {summary.count > 0 && (
-            <div className="mt-2">
+            <div className="mt-3">
               <StarRating value={summary.average} count={summary.count} size="md" />
             </div>
           )}
-          <p className="mt-4 text-3xl font-bold text-primary">
-            {formatPrice(product.price)}
-          </p>
+          <p className="mt-5 text-2xl">{formatPrice(product.price)}</p>
 
           <div className="mt-6">
             <p className="whitespace-pre-line text-muted-foreground">

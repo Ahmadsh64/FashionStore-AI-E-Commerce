@@ -11,13 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { logoutAndFlush } from "@/lib/account-store";
+import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/", label: "בית" },
-  { href: "/products", label: "מוצרים" },
-  { href: "/products?category=Men", label: "גברים" },
+  { href: "/products", label: "הקולקציה" },
   { href: "/products?category=Women", label: "נשים" },
+  { href: "/products?category=Men", label: "גברים" },
   { href: "/blog", label: "מגזין" },
 ];
 
@@ -25,6 +27,7 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [role, setRole] = useState<"customer" | "admin" | null>(null);
@@ -73,139 +76,158 @@ export function Navbar() {
     }
     router.push(`/products?q=${encodeURIComponent(q)}`);
     setOpen(false);
+    setSearchOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
-          <span className="rounded-md bg-primary px-2 py-1 text-primary-foreground">FS</span>
-          <span className="hidden sm:inline">FashionStore</span>
-        </Link>
+    <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md">
+      {!pathname.startsWith("/admin") && !pathname.startsWith("/checkout") && (
+        <AnnouncementBar />
+      )}
+      <div className="border-b">
+        <div className="container flex h-[4.25rem] items-center justify-between gap-4">
+          <BrandLogo />
 
-        <nav className="hidden items-center gap-5 lg:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                pathname === item.href && "text-foreground",
-              )}
+          <nav className="hidden items-center gap-7 lg:flex">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative text-[13px] tracking-wide text-muted-foreground transition-colors hover:text-foreground",
+                  (item.href === "/"
+                    ? pathname === "/"
+                    : pathname === item.href ||
+                      (item.href.startsWith("/products") &&
+                        pathname === "/products" &&
+                        item.href === "/products")) && "text-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:inline-flex"
+              aria-label="חיפוש"
+              onClick={() => setSearchOpen((v) => !v)}
             >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <form onSubmit={handleSearch} className="hidden max-w-sm flex-1 md:flex">
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="חפש מוצרים..."
-              className="pr-9"
-              aria-label="חיפוש מוצרים"
-            />
-          </div>
-        </form>
-
-        <div className="flex items-center gap-1 sm:gap-2">
-          <ThemeToggle />
-          <Link href="/wishlist" className="relative hidden sm:block">
-            <Button variant="ghost" size="icon" aria-label="מועדפים">
-              <Heart className="h-5 w-5" />
-              {mounted && wishCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
-                  {wishCount}
-                </span>
-              )}
+              <Search className="h-4 w-4" />
             </Button>
-          </Link>
-          {role === "admin" && (
-            <Link href="/admin">
-              <Button variant="ghost" size="sm" className="hidden lg:inline-flex">
-                <Shield className="h-4 w-4" />
-                Admin
+            <ThemeToggle />
+            <Link href="/wishlist" className="relative hidden sm:block">
+              <Button variant="ghost" size="icon" aria-label="מועדפים">
+                <Heart className="h-4 w-4" />
+                {mounted && wishCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-semibold text-white">
+                    {wishCount}
+                  </span>
+                )}
               </Button>
             </Link>
-          )}
-          {email ? (
-            <>
-              <Link href="/account">
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                  <User className="h-4 w-4" />
-                  <span className="hidden lg:inline">החשבון שלי</span>
+            {role === "admin" && (
+              <Link href="/admin" className="hidden lg:block">
+                <Button variant="ghost" size="icon" aria-label="Admin">
+                  <Shield className="h-4 w-4" />
                 </Button>
               </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hidden sm:inline-flex"
-                onClick={handleLogout}
-                aria-label="יציאה"
-                title="יציאה"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                <User className="h-4 w-4" />
-                כניסה
+            )}
+            {email ? (
+              <>
+                <Link href="/account" className="hidden sm:block">
+                  <Button variant="ghost" size="icon" aria-label="החשבון שלי">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden sm:inline-flex"
+                  onClick={handleLogout}
+                  aria-label="יציאה"
+                  title="יציאה"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Link href="/login" className="hidden sm:block">
+                <Button variant="ghost" size="icon" aria-label="כניסה">
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+
+            <Link href="/cart" className="relative">
+              <Button variant="ghost" size="icon" aria-label="Cart">
+                <ShoppingBag className="h-4 w-4" />
+                {mounted && count > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground">
+                    {count}
+                  </span>
+                )}
               </Button>
             </Link>
-          )}
 
-          <Link href="/cart" className="relative">
-            <Button variant="outline" size="icon" aria-label="Cart">
-              <ShoppingBag className="h-5 w-5" />
-              {mounted && count > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                  {count}
-                </span>
-              )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setOpen(!open)}
+              aria-label="Menu"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-          </Link>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setOpen(!open)}
-            aria-label="Menu"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          </div>
         </div>
+
+        {searchOpen && (
+          <div className="hidden border-t md:block">
+            <form onSubmit={handleSearch} className="container py-3">
+              <div className="relative mx-auto max-w-xl">
+                <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="חיפוש לפי שם, קטגוריה או סגנון..."
+                  className="border-0 bg-muted/60 pr-9"
+                  aria-label="חיפוש מוצרים"
+                  autoFocus
+                />
+              </div>
+            </form>
+          </div>
+        )}
       </div>
 
       {open && (
-        <div className="border-t lg:hidden">
-          <div className="container py-3">
-            <form onSubmit={handleSearch} className="mb-3 md:hidden">
+        <div className="border-b bg-background lg:hidden">
+          <div className="container py-4">
+            <form onSubmit={handleSearch} className="mb-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="חפש מוצרים..."
+                  placeholder="חפש בקולקציה..."
                   className="pr-9"
                   aria-label="חיפוש מוצרים"
                 />
               </div>
             </form>
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col">
               {NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  className="border-b border-border/60 py-3 text-sm tracking-wide"
                 >
                   {item.label}
                 </Link>
@@ -213,7 +235,7 @@ export function Navbar() {
               <Link
                 href="/wishlist"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                className="border-b border-border/60 py-3 text-sm"
               >
                 מועדפים
               </Link>
@@ -221,7 +243,7 @@ export function Navbar() {
                 <Link
                   href="/account"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  className="border-b border-border/60 py-3 text-sm"
                 >
                   החשבון שלי
                 </Link>
@@ -230,7 +252,7 @@ export function Navbar() {
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  className="border-b border-border/60 py-3 text-sm"
                 >
                   Admin
                 </Link>
@@ -238,17 +260,17 @@ export function Navbar() {
               {email ? (
                 <button
                   onClick={handleLogout}
-                  className="rounded-md px-3 py-2 text-right text-sm hover:bg-accent"
+                  className="py-3 text-right text-sm text-muted-foreground"
                 >
-                  יציאה ({email})
+                  יציאה
                 </button>
               ) : (
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm hover:bg-accent"
+                  className="py-3 text-sm"
                 >
-                  כניסה
+                  כניסה / הרשמה
                 </Link>
               )}
             </nav>

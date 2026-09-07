@@ -43,11 +43,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container flex min-h-[80vh] items-center justify-center py-12">
-      <div className="w-full max-w-md rounded-lg border bg-card p-8">
-        <h1 className="text-2xl font-bold">כניסה</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          התחבר לחשבון שלך כדי לצפות בהזמנות ולעקוב אחריהן.
+    <div className="grid min-h-[80vh] md:grid-cols-2">
+      <div className="relative hidden min-h-[40vh] bg-[#1c1612] md:flex md:flex-col md:justify-end md:p-12">
+        <p className="kicker text-white/50">FashionStore</p>
+        <p className="font-display mt-2 text-4xl text-white">ברוכים הבאים בחזרה.</p>
+      </div>
+      <div className="flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md">
+        <h1 className="font-display text-4xl">כניסה</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          התחברו כדי לראות הזמנות, מועדפים וסל שמורים לחשבון.
         </p>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
@@ -87,12 +92,13 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           אין לך חשבון?{" "}
-          <Link href="/register" className="font-medium text-foreground hover:underline">
+          <Link href="/register" className="font-medium text-foreground underline underline-offset-4">
             הרשמה
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

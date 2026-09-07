@@ -17,7 +17,7 @@ export function ProductGallery({ images, alt }: Props) {
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-[4/5] items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
+      <div className="flex aspect-[4/5] items-center justify-center bg-muted text-sm text-muted-foreground">
         אין תמונה
       </div>
     );
@@ -30,7 +30,7 @@ export function ProductGallery({ images, alt }: Props) {
   return (
     <>
       <div className="space-y-3">
-        <div className="group relative aspect-[4/5] overflow-hidden rounded-lg bg-muted">
+        <div className="group relative aspect-[4/5] overflow-hidden bg-muted">
           <Image
             src={current}
             alt={alt}
