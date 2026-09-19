@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import type { Order, OrderItem } from "@/types/order";
+import type { Order } from "@/types/order";
+import { attachOrderItems, type OrderWithItems } from "@/lib/orders";
 
 const STATUS_META: Record<
   Order["status"],
@@ -18,14 +19,12 @@ const STATUS_META: Record<
   cancelled: { label: "בוטל",   variant: "destructive" },
 };
 
-type OrderWithItems = Order & { items: OrderItem[] };
-
 async function getMyOrders(userId: string, email: string): Promise<OrderWithItems[]> {
   const supabase = await createClient();
   // מחזירים הזמנות שקשורות ל-user_id או לפי אימייל (לגיבוי הזמנות אורח שנעשו לפני הרשמה)
   const { data, error } = await supabase
     .from("orders")
-    .select("*, items:order_items(*)")
+    .select("*")
     .or(`user_id.eq.${userId},email.eq.${email}`)
     .order("created_at", { ascending: false });
 
@@ -33,7 +32,7 @@ async function getMyOrders(userId: string, email: string): Promise<OrderWithItem
     console.error("Failed to load orders:", error);
     return [];
   }
-  return (data as OrderWithItems[]) ?? [];
+  return attachOrderItems(supabase, (data as Order[]) ?? []);
 }
 
 export default async function AccountPage() {

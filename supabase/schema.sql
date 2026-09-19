@@ -65,6 +65,24 @@ alter table public.order_items
   add column if not exists size  text,
   add column if not exists color text;
 
+-- FK may be missing if order_items was created before orders / without references
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.order_items'::regclass
+      and contype = 'f'
+      and confrelid = 'public.orders'::regclass
+  ) then
+    alter table public.order_items
+      add constraint order_items_order_id_fkey
+      foreign key (order_id)
+      references public.orders(id)
+      on delete cascade;
+  end if;
+end $$;
+
 alter table public.orders
   add column if not exists payment_method        text,
   add column if not exists stripe_session_id     text,

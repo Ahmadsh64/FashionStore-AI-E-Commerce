@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatPrice } from "@/lib/utils";
 import type { Order } from "@/types/order";
+import { attachOrderItems } from "@/lib/orders";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusSelect } from "./OrderStatusSelect";
 import { PAYMENT_METHOD_LABELS } from "@/lib/validators";
@@ -17,9 +18,9 @@ export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("orders")
-    .select("*, order_items(*)")
+    .select("*")
     .order("created_at", { ascending: false });
-  const orders = (data as Order[]) ?? [];
+  const orders = await attachOrderItems(supabase, (data as Order[]) ?? []);
 
   return (
     <div>

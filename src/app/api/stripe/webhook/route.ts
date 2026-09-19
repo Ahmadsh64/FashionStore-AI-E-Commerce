@@ -61,33 +61,27 @@ export async function POST(request: Request) {
           try {
             const { data: order } = await db
               .from("orders")
-              .select("*, items:order_items(*)")
+              .select("*")
               .eq("id", orderId)
               .single();
             if (order) {
+              const { attachOrderItems } = await import("@/lib/orders");
+              const [withItems] = await attachOrderItems(db, [order]);
               const { sendOrderConfirmationEmail } = await import(
                 "@/lib/emails"
               );
               await sendOrderConfirmationEmail({
-                to: order.email,
-                customerName: order.full_name,
-                orderId: order.id,
-                total: Number(order.total),
-                items: (order.items ?? []).map(
-                  (i: {
-                    name: string;
-                    quantity: number;
-                    price: number;
-                    size: string | null;
-                    color: string | null;
-                  }) => ({
-                    name: i.name,
-                    quantity: i.quantity,
-                    price: Number(i.price),
-                    size: i.size ?? undefined,
-                    color: i.color ?? undefined,
-                  }),
-                ),
+                to: withItems.email,
+                customerName: withItems.full_name,
+                orderId: withItems.id,
+                total: Number(withItems.total),
+                items: withItems.items.map((i) => ({
+                  name: i.name,
+                  quantity: i.quantity,
+                  price: Number(i.price),
+                  size: i.size ?? undefined,
+                  color: i.color ?? undefined,
+                })),
               });
             }
           } catch (e) {

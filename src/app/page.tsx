@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { NewsletterForm } from "@/components/NewsletterForm";
+import { HeroVideo } from "@/components/HeroVideo";
 import { createClient } from "@/lib/supabase/server";
-import { getPosts } from "@/lib/blog";
 import { catalogLookImages, firstProductImage, productImage } from "@/lib/catalog";
 import type { Product } from "@/types/product";
+
+/** Lookbook loop — clothing store + fashion (Mixkit). */
+const HERO_VIDEO =
+  "https://assets.mixkit.co/videos/49384/49384-720.mp4";
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
@@ -51,7 +55,7 @@ const CATEGORY_TILES = [
 ];
 
 export default async function HomePage() {
-  const [products, posts] = await Promise.all([getFeaturedProducts(), getPosts()]);
+  const products = await getFeaturedProducts();
   const hero = firstProductImage(products);
   const story = firstProductImage(products, "Women") ?? hero;
   const looks = catalogLookImages(products, 6);
@@ -59,17 +63,11 @@ export default async function HomePage() {
   return (
     <div>
       <section className="relative min-h-[78vh] overflow-hidden bg-[#1c1612] md:min-h-[88vh]">
-        {productImage(hero) && (
-          <Image
-            src={productImage(hero)}
-            alt={hero?.name ?? "קולקציה"}
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/15" />
+        <HeroVideo
+          src={HERO_VIDEO}
+          poster={productImage(hero) || undefined}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
         <div className="container relative flex min-h-[78vh] flex-col justify-end pb-16 pt-28 text-white md:min-h-[88vh] md:pb-24">
           <p className="kicker text-white/80">קיץ 2026 · נבחר ביד</p>
           <h1 className="font-display mt-4 max-w-2xl text-5xl font-medium leading-[1.1] md:text-7xl">
@@ -216,41 +214,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {posts.length > 0 && (
-        <section className="container py-20">
-          <div className="mb-10 flex items-end justify-between">
-            <div>
-              <p className="kicker">השראה</p>
-              <h2 className="section-title mt-2">מהמגזין</h2>
-            </div>
-            <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
-              כל המאמרים
-            </Link>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {posts.slice(0, 3).map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
-                <div className="relative mb-4 aspect-[16/10] overflow-hidden bg-muted">
-                  {post.image_url ? (
-                    <Image
-                      src={post.image_url}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                    />
-                  ) : null}
-                </div>
-                <h3 className="font-display text-xl leading-snug group-hover:text-gold">
-                  {post.title}
-                </h3>
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {looks.length > 0 && (
         <section>
