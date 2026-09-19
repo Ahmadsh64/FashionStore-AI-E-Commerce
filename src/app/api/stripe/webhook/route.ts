@@ -66,10 +66,12 @@ export async function POST(request: Request) {
               .single();
             if (order) {
               const { attachOrderItems } = await import("@/lib/orders");
-              const [withItems] = await attachOrderItems(db, [order]);
               const { sendOrderConfirmationEmail } = await import(
                 "@/lib/emails"
               );
+              const [withItems] = await attachOrderItems(db, [
+                order as import("@/types/order").Order,
+              ]);
               await sendOrderConfirmationEmail({
                 to: withItems.email,
                 customerName: withItems.full_name,
